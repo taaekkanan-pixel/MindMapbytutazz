@@ -790,9 +790,9 @@ function renderEditor(){
     card.style.setProperty('--c', n.parent ? n.color : ROOT_COLOR);
 
     const label = document.createElement('span');
-      label.className='elabel';
-      label.textContent = n.label; // ลบตัวต่อสตริง / ข้างหลังออกทั้งหมด
-      card.appendChild(label);
+label.className='elabel';
+label.textContent = n.label; // ลบตัวต่อสตริง / ข้างหลังออกทั้งหมด
+card.appendChild(label);
 
     label.addEventListener('dblclick', (e)=>{
       e.stopPropagation();
