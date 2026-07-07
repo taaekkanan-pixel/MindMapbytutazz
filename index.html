@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -907,7 +908,21 @@ function renderEditor(){
 
     if(n.image){
       const thumb = document.createElement('img');
-      thumb.src = n.image; thumb.style.cssText = 'max-width:90px;max-height:60px;border-radius:6px;margin-top:6px;object-fit:cover;';
+      thumb.src = n.image;
+      thumb.title = 'Attached image (scaled to saved size)';
+      // Same scaling formula as the main Project view, so the editor preview
+      // matches what will actually render on the canvas. Bounded to fit
+      // within the enode-card's max-width (170px) so the layout never breaks.
+      const scalePct = n.imageScale || 100;
+      const rawW = 40 + 140 * (scalePct / 100);
+      const dispW = Math.round(Math.min(rawW, 150));
+      thumb.style.width = dispW + 'px';
+      thumb.style.maxWidth = dispW + 'px';
+      thumb.style.height = 'auto';
+      thumb.style.borderRadius = '6px';
+      thumb.style.marginTop = '6px';
+      thumb.style.display = 'block';
+      thumb.style.objectFit = 'contain';
       card.appendChild(thumb);
     }
 
