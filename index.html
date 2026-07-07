@@ -61,6 +61,7 @@
   .node-meta{ display:flex; gap:8px; justify-content:center; margin-top:6px; }
   .meta-btn{ cursor:pointer; font-size:13px; opacity:.85; transition:transform .15s ease, opacity .15s ease; }
   .meta-btn:hover{ transform:scale(1.25); opacity:1; }
+  .node-thumb{ margin-top:6px; border-radius:8px; object-fit:cover; box-shadow:0 2px 10px rgba(0,0,0,.4); cursor:pointer; display:block; }
 
   path.link{ fill:none; stroke-width:1.6; stroke-linecap:round; }
   path.link.drawing{ animation:draw .55s ease forwards; }
@@ -82,13 +83,18 @@
   .btn.primary{ color:#04140f; background:var(--ok); border-color:var(--ok); font-weight:600; }
   .btn.primary:hover{ filter:brightness(1.08); background:var(--ok); color:#04140f; }
   .btn.ghost{ color:var(--text-dim); }
+  .btn.layout-toggle.active{ color:#04140f; background:var(--info); border-color:var(--info); font-weight:600; }
   .btn.danger{ color:var(--danger); border-color:rgba(255,93,108,0.4); }
   .btn.warn-pulse{ color:#fff; background:var(--danger); border-color:var(--danger); animation:warnPulse 1s ease-in-out infinite; }
   @keyframes warnPulse{ 0%,100%{opacity:1;} 50%{opacity:.6;} }
   .btn:disabled, .btn.disabled{ opacity:.3; pointer-events:none; }
-  select.btn{ appearance:none; -webkit-appearance:none; padding-right:24px;
+
+  /* Dark, readable dropdown (fixes native option-list contrast) */
+  select.btn{ appearance:none; -webkit-appearance:none; padding-right:24px; color-scheme: dark;
+    background-color:#0e1626; color:var(--text-hi);
     background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0 L5 6 L10 0' fill='none' stroke='%2393a5c4' stroke-width='1.4'/></svg>");
     background-repeat:no-repeat; background-position:right 8px center; }
+  select.btn option{ background-color:#0e1626; color:var(--text-hi); }
 
   #zoomctl{ bottom:20px; right:20px; display:flex; flex-direction:column; gap:6px; padding:8px; border-radius:14px; background:var(--panel-bg); border:1px solid var(--panel-border); box-shadow:0 8px 24px rgba(0,0,0,.4); }
   #zoomctl .btn{ width:38px; height:32px; display:flex; align-items:center; justify-content:center; font-size:15px; }
@@ -124,6 +130,8 @@
     color:var(--text-hi); font-size:13.5px; max-width:170px; min-width:70px; line-height:1.35;
     cursor:grab; user-select:none; box-shadow:0 4px 16px rgba(0,0,0,.4), 0 0 18px color-mix(in srgb, var(--c,#93a5c4) 22%, transparent); }
   .enode-card.dragging{ cursor:grabbing; box-shadow:0 8px 30px rgba(0,0,0,.6); z-index:20; }
+  .enode-card.eselected{ outline:2px solid var(--info); outline-offset:2px; box-shadow:0 8px 30px rgba(0,0,0,.6), 0 0 0 4px rgba(143,215,255,0.18); }
+  #marquee{ position:absolute; z-index:15; border:1.5px solid rgba(143,215,255,0.8); background:rgba(143,215,255,0.12); pointer-events:none; display:none; }
   .enode.root .enode-card{ font-weight:700; padding:18px 26px; border-radius:20px; border-color:rgba(255,209,102,0.6);
     background:radial-gradient(circle at 30% 20%, rgba(255,209,102,0.16), rgba(14,22,38,0.95));
     box-shadow:0 0 0 1px rgba(255,209,102,0.12), 0 0 30px rgba(255,209,102,0.22); }
@@ -138,7 +146,7 @@
   .etool.del:hover{ color:var(--danger); border-color:var(--danger); }
   .etool.link.active{ color:var(--info); border-color:var(--info); background:rgba(143,215,255,0.12); }
   .etool.image.active{ color:#ffcf7a; border-color:#ffcf7a; background:rgba(255,207,122,0.12); }
-  .eswatch{ position:absolute; top:-13px; left:-10px; width:20px; height:20px; border-radius:50%; border:2px solid rgba(255,255,255,0.5); cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,.5); }
+  .eswatch{ position:absolute; top:auto; bottom:-11px; left:-11px; width:20px; height:20px; border-radius:50%; border:2px solid rgba(255,255,255,0.5); cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,.5); z-index:3; }
   .ehandle{ position:absolute; left:50%; bottom:-9px; transform:translateX(-50%); width:14px; height:14px; border-radius:50%;
     background:var(--c,#93a5c4); border:2px solid rgba(255,255,255,0.7); cursor:crosshair; box-shadow:0 0 10px var(--c,#93a5c4); }
   .ehandle:hover{ transform:translateX(-50%) scale(1.25); }
@@ -149,17 +157,27 @@
   .popup{ position:absolute; z-index:30; display:none; padding:10px; border-radius:12px; background:#0e1626;
     border:1px solid var(--panel-border); box-shadow:0 8px 24px rgba(0,0,0,.5); }
   .popup.open{ display:flex; }
-  #colorPopup{ gap:6px; flex-wrap:wrap; width:118px; }
+  .popup.fixed{ position:fixed; z-index:1500; }
+  #colorPopup{ gap:7px; flex-wrap:wrap; width:158px; }
   #colorPopup .sw{ width:20px; height:20px; border-radius:50%; cursor:pointer; border:2px solid rgba(255,255,255,0.25); }
-  #colorPopup .sw:hover{ border-color:#fff; }
-  .field-popup{ flex-direction:column; gap:8px; width:230px; }
+  #colorPopup .sw:hover{ border-color:#fff; transform:scale(1.1); }
+  .field-popup{ flex-direction:column; gap:8px; width:240px; }
   .fp-label{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--text-dim); letter-spacing:.03em; }
   .fp-input{ font-family:'Sarabun',sans-serif; font-size:13px; background:rgba(255,255,255,0.06); border:1px solid var(--panel-border);
     border-radius:8px; color:var(--text-hi); padding:7px 9px; outline:none; width:100%; }
   .fp-input:focus{ border-color:var(--info); }
   .fp-row{ display:flex; justify-content:flex-end; gap:6px; }
-  .fp-preview{ max-width:100%; max-height:100px; border-radius:8px; display:none; }
+  .fp-preview{ max-width:100%; max-height:120px; border-radius:8px; display:none; margin:0 auto; }
   .fp-preview.show{ display:block; }
+  .fp-file-row{ display:flex; align-items:center; gap:8px; width:100%; }
+  .fp-file-hidden{ position:absolute; width:1px; height:1px; opacity:0; overflow:hidden; pointer-events:none; }
+  .fp-file-btn{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--text-hi);
+    background:rgba(255,255,255,0.08); border:1px solid var(--panel-border); border-radius:7px; padding:5px 9px; cursor:pointer; white-space:nowrap; }
+  .fp-file-btn:hover{ background:rgba(255,255,255,0.15); }
+  .fp-file-name{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--text-mid); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .fp-slider-row{ display:none; align-items:center; gap:8px; }
+  .fp-slider-row input[type=range]{ flex:1; accent-color:var(--info); }
+  .fp-slider-label{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--text-dim); white-space:nowrap; }
 
   /* ---------- LIGHTBOX ---------- */
   #lightboxOverlay{ position:fixed; inset:0; z-index:3000; display:none; align-items:center; justify-content:center;
@@ -184,9 +202,11 @@
   <button class="btn" id="btnCollapseAll">COLLAPSE ALL</button>
   <button class="btn accent" id="btnReset">RESET VIEW</button>
   <div class="divider"></div>
-  <button class="btn" id="btnUndoView" title="Undo (Ctrl+Z)">↶ UNDO</button>
+  <button class="btn layout-toggle active" id="btnLayoutAuto">AUTO LAYOUT</button>
+  <button class="btn layout-toggle" id="btnLayoutCustom">CUSTOM LAYOUT</button>
   <div class="divider"></div>
   <button class="btn edit" id="btnEditData">✎ EDIT DATA</button>
+  <button class="btn" id="btnNewProjectTop">+ NEW PROJECT</button>
 </div>
 
 <div class="ui" id="hint">Click node to expand / collapse<br>Drag background to pan<br>Ctrl+Z to undo</div>
@@ -197,28 +217,38 @@
 <div id="editorOverlay">
   <div id="editorTop">
     <span class="title">🛠 Diagram Editor</span>
-    <span class="hint2">Double-click text to edit (Thai input supported) • Drag node to reposition • Drag the dot below a node onto another node to re-parent • + Add child • × Delete node &amp; sub-branches • 🔗 Attach link • 🖼 Attach image • Ctrl+Z to undo</span>
+    <span class="hint2">Double-click text to edit (Thai input supported) • Drag node to reposition • Drag the dot below a node onto another node to re-parent • + Add child • × Delete node &amp; sub-branches • 🔗 Attach link • 🖼 Attach/resize image • Ctrl+Z to undo</span>
     <button class="btn" id="btnUndoEditor" title="Undo (Ctrl+Z)">↶ UNDO</button>
-    <button class="btn" id="btnNewProject">+ NEW PROJECT</button>
+    <button class="btn" id="btnRedoEditor" title="Redo (Ctrl+Shift+Z)">↷ REDO</button>
     <button class="btn danger" id="btnDeleteProject">DELETE PROJECT</button>
     <button class="btn ghost" id="btnCancelEdit">CANCEL</button>
     <button class="btn primary" id="btnSaveEdit">✓ SAVE &amp; UPDATE</button>
   </div>
   <div id="editorStageWrap">
-    <div id="editorStage" class="gridbg"><div id="editorWorld"><svg id="elines"></svg></div></div>
+    <div id="editorStage" class="gridbg"><div id="editorWorld"><svg id="elines"></svg></div><div id="marquee"></div></div>
     <div id="colorPopup" class="popup"></div>
     <div id="fieldPopup" class="popup field-popup">
       <div class="fp-label" id="fpLabel">Link URL</div>
       <input type="text" id="fpInput" class="fp-input" placeholder="https://...">
+      <div class="fp-file-row" id="fpFileRow">
+        <label class="fp-file-btn" for="fpFileInput">Choose File</label>
+        <span class="fp-file-name" id="fpFileName">No file chosen</span>
+        <input type="file" id="fpFileInput" class="fp-file-hidden" accept="image/*">
+      </div>
+      <div class="fp-slider-row" id="fpSizeRow">
+        <span class="fp-slider-label">Size <span id="fpSizeVal">100</span>%</span>
+        <input type="range" id="fpSizeSlider" min="10" max="100" value="100">
+      </div>
       <img id="fpPreview" class="fp-preview">
       <div class="fp-row"><button class="btn ghost" id="fpClear">Clear</button><button class="btn primary" id="fpSave">Save</button></div>
     </div>
-    <div id="newProjPopup" class="popup field-popup">
-      <div class="fp-label">New project name</div>
-      <input type="text" id="newProjInput" class="fp-input" placeholder="e.g. Company Retreat 2026">
-      <div class="fp-row"><button class="btn ghost" id="newProjCancel">Cancel</button><button class="btn primary" id="newProjCreate">Create</button></div>
-    </div>
   </div>
+</div>
+
+<div id="newProjPopup" class="popup field-popup fixed">
+  <div class="fp-label">New project name</div>
+  <input type="text" id="newProjInput" class="fp-input" placeholder="e.g. Company Retreat 2026">
+  <div class="fp-row"><button class="btn ghost" id="newProjCancel">Cancel</button><button class="btn primary" id="newProjCreate">Create</button></div>
 </div>
 
 <div id="lightboxOverlay">
@@ -250,48 +280,19 @@ function showToast(msg, ms){
 
 /* =========================================================
    PALETTE / DEFAULT CONTENT
+   Default data is intentionally minimal: a single clean root
+   node, nothing else. No sample branches to delete by hand.
    ========================================================= */
-const PALETTE = ['#4ea8de','#2dd4bf','#7ee787','#b48bf2','#ffb454','#ff6b6b','#f472b6','#60d1ff'];
+const PALETTE = [
+  '#4ea8de','#2dd4bf','#7ee787','#b48bf2','#ffb454','#ff6b6b','#f472b6','#60d1ff',
+  '#facc15','#34d399','#a78bfa','#fb923c','#f87171','#22d3ee','#c084fc','#4ade80',
+  '#fbbf24','#f43f5e'
+];
 const ROOT_COLOR = '#ffd166';
 
-function makeDefaultTree(){
-  return {
-    label: "My Project",
-    children: [
-      { label: "ติดต่อ", color: PALETTE[0], children: [
-        { label: "ที่พัก คืนวันที่ 3" }, { label: "รถตู้" },
-        { label: "อีเว้นท์", children: [ { label: "เพื่อน", children: [ { label: "follow", children:[ {label:"baby"} ] } ] } ] }
-      ]},
-      { label: "ที่พัก", color: PALETTE[1], children: [
-        { label: "โรงแรม 1", children: [ { label: "เมนูอาหาร", children: [ {label:"เช้า"}, {label:"เย็น"} ] }, { label: "กลางวัน" } ] },
-        { label: "โรงแรม 2", children: [ { label: "เมนูอาหาร", children: [ {label:"เช้า"}, {label:"เย็น"} ] } ] }
-      ]},
-      { label: "Drink", color: PALETTE[2], children: [ {label:"เบียร์"}, {label:"รสชาติ"} ] },
-      { label: "เลี้ยง", color: PALETTE[3], children: [
-        { label: "แพคเกจ", children: [ {label:"4"}, {label:"5"}, {label:"6"} ] },
-        { label: "กิจกรรม", children: [ { label: "อุปกรณ์", children: [ {label:"อุปกรณ์ 1"}, {label:"อุปกรณ์ 2"} ] } ] },
-        { label: "จำนวน", children: [ {label:"เพื่อน"}, {label:"follow"} ] }
-      ]},
-      { label: "งบ", color: PALETTE[4], children: [
-        { label: "งบทั้งหมด คาดว่าใช้เท่าไหร่", children: [
-          { label: "Web for slipe by Tanot", children: [ {label:"Slipe"}, {label:"Data sheet"}, {label:"notice in Line app"} ] }
-        ]},
-        { label: "งบที่ลงตัว ใช้จ่ายแล้ว" }, { label: "งบที่มีตอนนี้ เก็บเพิ่ม" },
-        { label: "งบที่ตั้งไว้ เก็บเพิ่ม", children: [ {label:"แชทเก็บเพิ่มเติมในผ่อนมั้ย?"} ] }
-      ]},
-      { label: "การเงิน", color: PALETTE[5], children: [
-        { label: "สรุป", children: [ {label:"งบประมาณต่องาน"} ] },
-        { label: "ค่าใช้จ่าย", children: [
-          { label: "โรงแรม 1", children: [ {label:"อาหาร"}, {label:"น้อง"} ] },
-          { label: "โรงแรม 2", children: [ {label:"อาหาร"}, { label:"น้อง", children:[{label:"ค่าเดินทาง (Van)"}] } ] },
-          { label: "ร้านอาหารนอก 3 มื้อ", children: [ {label:"ร้าน 1"}, {label:"ร้าน 2"}, {label:"ร้าน 3"} ] },
-          { label: "อุปกรณ์กิจกรรม", children: [ {label:"ค่าเครื่องดื่ม"} ] }
-        ]}
-      ]}
-    ]
-  };
+function makeRootOnlyTree(label){
+  return { label: label || 'Central Idea', children: [] };
 }
-function makeBlankTree(){ return { label: "New Project", sub: "root", children: [] }; }
 
 /* =========================================================
    SHARED HELPERS
@@ -308,6 +309,7 @@ function prep(node, depth, inheritedColor, parent){
   if(node.expanded === undefined) node.expanded = false;
   node.link = node.link || '';
   node.image = node.image || '';
+  node.imageScale = node.imageScale || 100;
   node.children.forEach(c => prep(c, depth+1, node.color, node));
   return node;
 }
@@ -315,39 +317,42 @@ function leafCount(node){ return node.children.length ? node.children.reduce((s,
 function isDescendantOf(node, ancestor){ let cur=node.parent; while(cur){ if(cur===ancestor) return true; cur=cur.parent; } return false; }
 function serializeTree(node){
   return { label:node.label, sub:node.sub, color:node.color, expanded:node.expanded, link:node.link||'', image:node.image||'',
+           imageScale:node.imageScale||100, ex:node.ex, ey:node.ey,
            children:(node.children||[]).map(serializeTree) };
 }
 function genId(){ return 'proj_' + Date.now() + '_' + Math.random().toString(36).slice(2,7); }
 
 /* =========================================================
-   PROJECT STORE — data isolation: only ever seed defaults
-   if nothing was previously saved. Existing data always wins.
+   PROJECT STORE — data isolation: only ever seed the minimal
+   default if nothing was previously saved. Existing data always wins.
    ========================================================= */
 let projects = {};
 let currentProjectId = null;
 let DATA = null;
+let layoutMode = 'auto'; // 'auto' = radial layout, 'custom' = editor-designed coordinates
 
 (function initStore(){
   const raw = safeGet(STORAGE_KEY);
   if(raw){
     try{
       const parsed = JSON.parse(raw);
-      Object.entries(parsed).forEach(([id,p])=>{ projects[id] = { name: p.name, tree: p.tree }; });
+      Object.entries(parsed).forEach(([id,p])=>{ projects[id] = { name: p.name, tree: p.tree, layoutMode: p.layoutMode || 'auto' }; });
     }catch(e){ /* corrupt data — fall through to seeding below */ }
   }
   if(Object.keys(projects).length === 0){
     const id = genId();
-    projects[id] = { name: 'Event Planning', tree: makeDefaultTree() };
+    projects[id] = { name: 'My Project', tree: makeRootOnlyTree('Central Idea'), layoutMode:'auto' };
   }
   const savedCurrent = safeGet(CURRENT_KEY);
   currentProjectId = (savedCurrent && projects[savedCurrent]) ? savedCurrent : Object.keys(projects)[0];
   DATA = projects[currentProjectId].tree;
   prep(DATA, 0, ROOT_COLOR, null);
+  layoutMode = projects[currentProjectId].layoutMode || 'auto';
 })();
 
 function persist(){
   const out = {};
-  Object.entries(projects).forEach(([id,p])=>{ out[id] = { name: p.name, tree: serializeTree(p.tree) }; });
+  Object.entries(projects).forEach(([id,p])=>{ out[id] = { name: p.name, tree: serializeTree(p.tree), layoutMode: p.layoutMode || 'auto' }; });
   const ok1 = safeSet(STORAGE_KEY, JSON.stringify(out));
   const ok2 = safeSet(CURRENT_KEY, currentProjectId);
   if(!ok1 || !ok2) storageOK = false;
@@ -369,29 +374,27 @@ function switchProject(id){
   currentProjectId = id;
   DATA = projects[id].tree;
   prep(DATA, 0, ROOT_COLOR, null);
+  layoutMode = projects[id].layoutMode || 'auto';
   recompute(); render(); resetView();
   refreshProjectSelector();
+  updateLayoutButtons();
   persist();
-  updateUndoButtons();
 }
 
 function createProject(name){
-  pushGlobalUndo();
   const id = genId();
-  const tree = makeBlankTree();
+  const tree = makeRootOnlyTree('New Project');
   prep(tree, 0, ROOT_COLOR, null);
-  projects[id] = { name: (name && name.trim()) ? name.trim() : 'Untitled Project', tree };
+  projects[id] = { name: (name && name.trim()) ? name.trim() : 'Untitled Project', tree, layoutMode:'auto' };
   switchProject(id);
 }
 
 function deleteProject(id){
-  pushGlobalUndo();
   delete projects[id];
   const remaining = Object.keys(projects);
   if(remaining.length === 0){
     const newId = genId();
-    const tree = makeDefaultTree(); prep(tree,0,ROOT_COLOR,null);
-    projects[newId] = { name: 'Event Planning', tree };
+    projects[newId] = { name: 'My Project', tree: makeRootOnlyTree('Central Idea'), layoutMode:'auto' };
     switchProject(newId);
   } else {
     switchProject(remaining[0]);
@@ -407,12 +410,22 @@ const RADIUS_STEP = 190;
 let positions = new Map();
 let prevPositions = new Map();
 
-function layout(node, a0, a1, depth){
+// Rough on-screen footprint of a node, used to keep rings from overlapping.
+function estimateNodeSize(node){
+  const base = node.depth===0 ? 110 : (node.depth===1 ? 78 : 58);
+  let w = base + (node.label||'').length * 4.2;
+  if(node.image){
+    const iw = 40 + 140 * ((node.imageScale||100)/100);
+    w = Math.max(w, iw + 24);
+  }
+  if(node.sub) w = Math.max(w, base + node.sub.length*4);
+  return Math.min(Math.max(w, 50), 260);
+}
+
+// Pass 1: same leaf-weighted angle allocation as before — just records it.
+function assignAngles(node, a0, a1, depth, angleMap){
   const mid = (a0+a1)/2;
-  const r = depth * RADIUS_STEP;
-  const x = depth===0 ? 0 : r*Math.cos(mid);
-  const y = depth===0 ? 0 : r*Math.sin(mid);
-  positions.set(node.id, {x,y,node,depth,angle:mid});
+  angleMap.set(node.id, {node, depth, angle:mid, a0, a1});
   if(node.expanded && node.children.length){
     const total = leafCount(node);
     const span = depth===0 ? Math.PI*2 : Math.max((a1-a0),0.55);
@@ -422,12 +435,71 @@ function layout(node, a0, a1, depth){
     node.children.forEach(child=>{
       const w = leafCount(child)/total;
       const ca0 = cursor, ca1 = cursor + w*(end-start);
-      layout(child, ca0, ca1, depth+1);
+      assignAngles(child, ca0, ca1, depth+1, angleMap);
       cursor = ca1;
     });
   }
 }
-function recompute(){ prevPositions = positions; positions = new Map(); layout(DATA, 0, Math.PI*2, 0); }
+
+// Pass 2: grow each depth's ring radius so its narrowest angular gap still
+// clears its widest node — nodes get pushed outward instead of colliding.
+function layout(root){
+  const angleMap = new Map();
+  assignAngles(root, 0, Math.PI*2, 0, angleMap);
+
+  const byDepth = new Map();
+  let maxDepth = 0;
+  angleMap.forEach(info=>{
+    if(!byDepth.has(info.depth)) byDepth.set(info.depth, []);
+    byDepth.get(info.depth).push(info);
+    if(info.depth>maxDepth) maxDepth = info.depth;
+  });
+
+  const radiusForDepth = [0];
+  for(let d=1; d<=maxDepth; d++){
+    const infos = byDepth.get(d) || [];
+    let minSpan = Infinity, maxSize = 0;
+    infos.forEach(info=>{
+      minSpan = Math.min(minSpan, info.a1-info.a0);
+      maxSize = Math.max(maxSize, estimateNodeSize(info.node));
+    });
+    if(!isFinite(minSpan)) minSpan = Math.PI*2;
+    minSpan = Math.max(minSpan, 0.02);
+    const needed = (maxSize + 44) / (2*Math.sin(minSpan/2));
+    radiusForDepth[d] = Math.min(4000, Math.max(radiusForDepth[d-1] + RADIUS_STEP, needed));
+  }
+
+  angleMap.forEach(info=>{
+    const r = radiusForDepth[info.depth];
+    const x = info.depth===0 ? 0 : r*Math.cos(info.angle);
+    const y = info.depth===0 ? 0 : r*Math.sin(info.angle);
+    positions.set(info.node.id, {x,y,node:info.node,depth:info.depth,angle:info.angle});
+  });
+}
+function layoutCustomWalk(node, depth){
+  const hasCoords = typeof node.ex === 'number' && typeof node.ey === 'number';
+  const x = hasCoords ? node.ex : 0, y = hasCoords ? node.ey : 0;
+  positions.set(node.id, {x,y,node,depth,angle:0});
+  if(node.expanded && node.children.length){ node.children.forEach(c=>layoutCustomWalk(c, depth+1)); }
+}
+function recompute(){
+  prevPositions = positions; positions = new Map();
+  if(layoutMode === 'custom') layoutCustomWalk(DATA, 0);
+  else layout(DATA);
+}
+function setLayoutMode(mode){
+  layoutMode = mode;
+  projects[currentProjectId].layoutMode = mode;
+  updateLayoutButtons();
+  recompute(); render();
+  persist();
+}
+function updateLayoutButtons(){
+  document.getElementById('btnLayoutAuto').classList.toggle('active', layoutMode==='auto');
+  document.getElementById('btnLayoutCustom').classList.toggle('active', layoutMode==='custom');
+}
+document.getElementById('btnLayoutAuto').addEventListener('click', ()=> setLayoutMode('auto'));
+document.getElementById('btnLayoutCustom').addEventListener('click', ()=> setLayoutMode('custom'));
 
 const world = document.getElementById('world');
 const svg = document.getElementById('lines');
@@ -487,22 +559,26 @@ function render(){
     const labelSpan = document.createElement('span');
     labelSpan.className='label'; labelSpan.textContent = node.label;
     box.appendChild(labelSpan);
+    if(node.sub){ const small=document.createElement('small'); small.textContent=node.sub; box.appendChild(small); }
 
-    if(node.link || node.image){
+    if(node.image){
+      const thumb = document.createElement('img');
+      thumb.className = 'node-thumb'; thumb.src = node.image; thumb.title='Click to view full size';
+      const scalePct = node.imageScale || 100;
+      const dispW = Math.round(40 + 140 * (scalePct/100)); // synced with the Editor's size slider
+      thumb.style.width = dispW + 'px';
+      thumb.style.maxWidth = dispW + 'px';
+      thumb.style.height = 'auto';
+      thumb.addEventListener('click', e=>{ e.stopPropagation(); openLightbox(node.image); });
+      box.appendChild(thumb);
+    }
+    if(node.link){
       const meta = document.createElement('div');
       meta.className = 'node-meta';
-      if(node.link){
-        const a = document.createElement('span');
-        a.className='meta-btn'; a.textContent='🔗'; a.title='Open attached link';
-        a.addEventListener('click', e=>{ e.stopPropagation(); window.open(node.link, '_blank', 'noopener'); });
-        meta.appendChild(a);
-      }
-      if(node.image){
-        const im = document.createElement('span');
-        im.className='meta-btn'; im.textContent='🖼️'; im.title='View attached image';
-        im.addEventListener('click', e=>{ e.stopPropagation(); openLightbox(node.image); });
-        meta.appendChild(im);
-      }
+      const a = document.createElement('span');
+      a.className='meta-btn'; a.textContent='🔗'; a.title='Open attached link';
+      a.addEventListener('click', e=>{ e.stopPropagation(); window.open(node.link, '_blank', 'noopener'); });
+      meta.appendChild(a);
       box.appendChild(meta);
     }
 
@@ -577,71 +653,66 @@ document.getElementById('btnCollapseAll').addEventListener('click', ()=>{ DATA.e
 window.addEventListener('resize', ()=>{ resetView(); if(editorOpen) fitEditor(); });
 
 /* =========================================================
-   UNDO SYSTEM
-   View mode: undoes committed project-level changes
-   (Save & Update / Create Project / Delete Project).
-   Editor mode: undoes granular in-progress edits.
+   UNDO / REDO SYSTEM — editor mode only
    ========================================================= */
-let globalUndoStack = [];
 let editorUndoStack = [];
-
-function pushGlobalUndo(){
-  const snap = { currentProjectId, projects: {} };
-  Object.entries(projects).forEach(([id,p])=>{ snap.projects[id] = { name:p.name, tree: serializeTree(p.tree) }; });
-  globalUndoStack.push(snap);
-  if(globalUndoStack.length>30) globalUndoStack.shift();
-  updateUndoButtons();
-}
-function undoGlobal(){
-  if(!globalUndoStack.length){ showToast('Nothing to undo.', 2000); return; }
-  const snap = globalUndoStack.pop();
-  projects = {};
-  Object.entries(snap.projects).forEach(([id,p])=>{ projects[id] = { name:p.name, tree:p.tree }; });
-  currentProjectId = (snap.currentProjectId && projects[snap.currentProjectId]) ? snap.currentProjectId : Object.keys(projects)[0];
-  DATA = projects[currentProjectId].tree;
-  prep(DATA, 0, ROOT_COLOR, null);
-  recompute(); render(); refreshProjectSelector(); persist();
-  updateUndoButtons();
-}
+let editorRedoStack = [];
 
 function pushEditorUndo(){
   if(!editDATA) return;
   editorUndoStack.push(cloneTree(editDATA, null));
   if(editorUndoStack.length>40) editorUndoStack.shift();
+  editorRedoStack = []; // new action invalidates redo history
   updateUndoButtons();
 }
 function undoEditorAction(){
   if(!editorUndoStack.length){ showToast('Nothing to undo.', 2000); return; }
+  editorRedoStack.push(cloneTree(editDATA, null));
   editDATA = editorUndoStack.pop();
   renderEditor();
+  autosaveEditorDraft();
+  updateUndoButtons();
+}
+function redoEditorAction(){
+  if(!editorRedoStack.length){ showToast('Nothing to redo.', 2000); return; }
+  editorUndoStack.push(cloneTree(editDATA, null));
+  editDATA = editorRedoStack.pop();
+  renderEditor();
+  autosaveEditorDraft();
   updateUndoButtons();
 }
 
 function updateUndoButtons(){
-  document.getElementById('btnUndoView').classList.toggle('disabled', globalUndoStack.length===0);
-  document.getElementById('btnUndoEditor').classList.toggle('disabled', editorUndoStack.length===0);
+  const u = document.getElementById('btnUndoEditor'), r = document.getElementById('btnRedoEditor');
+  if(u) u.classList.toggle('disabled', editorUndoStack.length===0);
+  if(r) r.classList.toggle('disabled', editorRedoStack.length===0);
 }
 
-document.getElementById('btnUndoView').addEventListener('click', undoGlobal);
 document.getElementById('btnUndoEditor').addEventListener('click', undoEditorAction);
+document.getElementById('btnRedoEditor').addEventListener('click', redoEditorAction);
 
 document.addEventListener('keydown', (e)=>{
   if(e.target && (e.target.tagName==='INPUT' || e.target.tagName==='TEXTAREA')) return; // let native text undo work
+  if(!editorOpen) return;
   if((e.ctrlKey||e.metaKey) && (e.key==='z' || e.key==='Z')){
     e.preventDefault();
-    if(editorOpen) undoEditorAction(); else undoGlobal();
+    if(e.shiftKey) redoEditorAction(); else undoEditorAction();
+  }
+  if((e.ctrlKey||e.metaKey) && (e.key==='y' || e.key==='Y')){
+    e.preventDefault();
+    redoEditorAction();
   }
   if(e.key === 'Escape') closeLightbox();
 });
+document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && !editorOpen) closeLightbox(); });
 
 /* =========================================================
    INITIAL RENDER
    ========================================================= */
-recompute(); render(); resetView(); refreshProjectSelector(); updateUndoButtons();
+recompute(); render(); resetView(); refreshProjectSelector(); updateLayoutButtons(); updateUndoButtons();
 if(!storageOK){
   setTimeout(()=> showToast('Local storage is unavailable in this preview, so changes won\'t be saved after a refresh here. Download this file (or host it, e.g. on GitHub Pages) and your projects will save automatically in your own browser.', 9000), 700);
 }
-setTimeout(()=>{ toggleNode(DATA); }, 500);
 
 /* =========================================================
    EDIT MODE — visual diagram editor
@@ -653,9 +724,42 @@ let edIdc = 0;
 function cloneTree(node, parent){
   const c = { id: 'e'+(edIdc++), label: node.label, sub: node.sub, color: node.color,
               expanded: node.expanded, ex: node.ex, ey: node.ey, link: node.link||'', image: node.image||'',
+              imageScale: node.imageScale || 100,
               parent: parent, children: [] };
   c.children = node.children.map(ch => cloneTree(ch, c));
   return c;
+}
+
+/* ---- autosave draft (protects against refresh/crash while editing) ---- */
+function draftKey(){ return 'mm_editor_draft_' + currentProjectId; }
+function serializeEditTree(n){
+  return { label:n.label, sub:n.sub, color:n.color, expanded:n.expanded, link:n.link||'', image:n.image||'',
+           imageScale:n.imageScale||100, ex:n.ex, ey:n.ey, children:n.children.map(serializeEditTree) };
+}
+function deserializeEditTree(n, parent){
+  const c = { id:'e'+(edIdc++), label:n.label, sub:n.sub, color:n.color, expanded:n.expanded,
+              link:n.link||'', image:n.image||'', imageScale:n.imageScale||100, ex:n.ex, ey:n.ey, parent, children:[] };
+  c.children = (n.children||[]).map(ch=>deserializeEditTree(ch, c));
+  return c;
+}
+function autosaveEditorDraft(){
+  if(!editorOpen || !editDATA) return;
+  try{ localStorage.setItem(draftKey(), JSON.stringify(serializeEditTree(editDATA))); }catch(e){ /* storage unavailable in preview */ }
+}
+let _autosaveTimer = null;
+function scheduleAutosave(){
+  clearTimeout(_autosaveTimer);
+  _autosaveTimer = setTimeout(autosaveEditorDraft, 350);
+}
+function clearEditorDraft(){
+  try{ localStorage.removeItem(draftKey()); }catch(e){}
+}
+function loadEditorDraft(){
+  try{
+    const raw = localStorage.getItem(draftKey());
+    if(!raw) return null;
+    return JSON.parse(raw);
+  }catch(e){ return null; }
 }
 
 function seedPositions(root){
@@ -683,11 +787,20 @@ const fieldPopup = document.getElementById('fieldPopup');
 const newProjPopup = document.getElementById('newProjPopup');
 let epanX=0, epanY=0, ezoom=1;
 let currentFieldNode = null, currentFieldName = null;
+let selectedNodeIds = new Set();
 
 function openEditor(){
   edIdc = 0;
-  editDATA = cloneTree(DATA, null);
   editorUndoStack = [];
+  editorRedoStack = [];
+  selectedNodeIds.clear();
+  const draft = loadEditorDraft();
+  if(draft){
+    editDATA = deserializeEditTree(draft, null);
+    showToast('Restored unsaved changes from your last session.', 4000);
+  } else {
+    editDATA = cloneTree(DATA, null);
+  }
   const seeds = seedPositions(editDATA);
   (function walk(n){
     if(n.ex===undefined || n.ey===undefined){ const s=seeds.get(n.id); n.ex=s.x; n.ey=s.y; }
@@ -704,11 +817,11 @@ function applyEditorTransform(){ editorWorld.style.transform = `translate(${epan
 function closeEditor(){ editorOverlay.classList.remove('open'); editorOpen=false; colorPopup.classList.remove('open'); fieldPopup.classList.remove('open'); newProjPopup.classList.remove('open'); }
 
 document.getElementById('btnEditData').addEventListener('click', openEditor);
-document.getElementById('btnCancelEdit').addEventListener('click', closeEditor);
+document.getElementById('btnCancelEdit').addEventListener('click', ()=>{ clearEditorDraft(); closeEditor(); });
 document.getElementById('btnSaveEdit').addEventListener('click', ()=>{
-  pushGlobalUndo();
   function convert(n){
     return { id:n.id, label:n.label, sub:n.sub, color:n.color, expanded:n.expanded, link:n.link||'', image:n.image||'',
+             imageScale:n.imageScale||100, ex:n.ex, ey:n.ey,
              children: n.children.map(convert) };
   }
   const newRoot = convert(editDATA);
@@ -717,16 +830,15 @@ document.getElementById('btnSaveEdit').addEventListener('click', ()=>{
   prep(DATA, 0, ROOT_COLOR, null);
   recompute(); render();
   persist();
+  clearEditorDraft();
   closeEditor();
 });
 
 /* ---- new project / delete project (inside editor) ---- */
-document.getElementById('btnNewProject').addEventListener('click', (e)=>{
-  const btn = e.currentTarget;
-  const wrapRect = document.getElementById('editorStageWrap').getBoundingClientRect();
-  const rect = btn.getBoundingClientRect();
-  newProjPopup.style.left = Math.max(8, rect.left - wrapRect.left - 40) + 'px';
-  newProjPopup.style.top = (rect.bottom - wrapRect.top + 8) + 'px';
+document.getElementById('btnNewProjectTop').addEventListener('click', (e)=>{
+  const rect = e.currentTarget.getBoundingClientRect();
+  newProjPopup.style.left = Math.max(8, rect.left - 40) + 'px';
+  newProjPopup.style.top = (rect.bottom + 8) + 'px';
   newProjPopup.classList.add('open');
   document.getElementById('newProjInput').value = '';
   document.getElementById('newProjInput').focus();
@@ -736,7 +848,6 @@ document.getElementById('newProjCreate').addEventListener('click', ()=>{
   const name = document.getElementById('newProjInput').value;
   createProject(name);
   newProjPopup.classList.remove('open');
-  openEditor();
 });
 document.getElementById('newProjInput').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); document.getElementById('newProjCreate').click(); } });
 
@@ -786,13 +897,19 @@ function renderEditor(){
     wrap.dataset.id = n.id;
 
     const card = document.createElement('div');
-    card.className = 'enode-card';
+    card.className = 'enode-card' + (selectedNodeIds.has(n.id) ? ' eselected' : '');
     card.style.setProperty('--c', n.parent ? n.color : ROOT_COLOR);
 
     const label = document.createElement('span');
-label.className='elabel';
-label.textContent = n.label; // ลบตัวต่อสตริง / ข้างหลังออกทั้งหมด
-card.appendChild(label);
+    label.className='elabel';
+    label.textContent = n.parent ? n.label : (n.label + (n.sub ? ' / '+n.sub : ''));
+    card.appendChild(label);
+
+    if(n.image){
+      const thumb = document.createElement('img');
+      thumb.src = n.image; thumb.style.cssText = 'max-width:90px;max-height:60px;border-radius:6px;margin-top:6px;object-fit:cover;';
+      card.appendChild(thumb);
+    }
 
     label.addEventListener('dblclick', (e)=>{
       e.stopPropagation();
@@ -835,7 +952,7 @@ card.appendChild(label);
     tools.appendChild(linkBtn);
 
     const imgBtn = document.createElement('button');
-    imgBtn.className='etool image' + (n.image ? ' active':''); imgBtn.textContent='🖼'; imgBtn.title='Attach image';
+    imgBtn.className='etool image' + (n.image ? ' active':''); imgBtn.textContent='🖼'; imgBtn.title='Attach / resize image';
     imgBtn.addEventListener('mousedown', e=>e.stopPropagation());
     imgBtn.addEventListener('click', e=>{ e.stopPropagation(); openFieldPopup(imgBtn, n, 'image'); });
     tools.appendChild(imgBtn);
@@ -872,6 +989,7 @@ card.appendChild(label);
 
     card.addEventListener('mousedown', e=>{
       if(e.target.closest('.etool')||e.target.closest('.ehandle')||e.target.closest('.eswatch')||e.target.tagName==='INPUT') return;
+      if(!selectedNodeIds.has(n.id) && selectedNodeIds.size){ selectedNodeIds.clear(); }
       startNodeDrag(n, card, e);
     });
 
@@ -882,9 +1000,10 @@ card.appendChild(label);
 
   elines.appendChild(lineFrag);
   editorWorld.appendChild(nodeFrag);
+  scheduleAutosave();
 }
 
-/* ---- color popup ---- */
+/* ---- color popup (expanded palette) ---- */
 function openColorPopup(anchorEl, node){
   const rect = anchorEl.getBoundingClientRect();
   const wrapRect = document.getElementById('editorStageWrap').getBoundingClientRect();
@@ -901,68 +1020,145 @@ function openColorPopup(anchorEl, node){
     colorPopup.appendChild(sw);
   });
   colorPopup.style.left = (rect.left - wrapRect.left) + 'px';
-  colorPopup.style.top = (rect.top - wrapRect.top - 44) + 'px';
+  colorPopup.style.top = (rect.top - wrapRect.top - 76) + 'px';
   colorPopup.classList.add('open');
 }
 
 /* ---- link / image field popup ---- */
+let pendingImageBase = null;      // Image object holding the currently loaded source
+let pendingImageNaturalW = 0, pendingImageNaturalH = 0;
+let pendingImageDataURL = '';     // resized output ready to be saved
+const MAX_IMAGE_DIM = 900;        // cap stored resolution so localStorage stays small
+
+function effectiveBaseDims(){
+  let w = pendingImageNaturalW, h = pendingImageNaturalH;
+  if(w > MAX_IMAGE_DIM){ h = h * (MAX_IMAGE_DIM/w); w = MAX_IMAGE_DIM; }
+  return { w, h };
+}
+// Runs ONCE per upload/open — bakes one full-quality (capped) version that
+// becomes node.image. Never re-run per slider tick, so scale never compounds.
+function loadImageIntoPending(dataURL){
+  return new Promise(resolve=>{
+    const img = new Image();
+    img.onload = ()=>{
+      pendingImageBase = img; pendingImageNaturalW = img.naturalWidth; pendingImageNaturalH = img.naturalHeight;
+      const base = effectiveBaseDims();
+      const canvas = document.createElement('canvas');
+      canvas.width = base.w; canvas.height = base.h;
+      canvas.getContext('2d').drawImage(img, 0, 0, base.w, base.h);
+      pendingImageDataURL = canvas.toDataURL('image/jpeg', 0.9);
+      resolve();
+    };
+    img.src = dataURL;
+  });
+}
+// Live preview: pure CSS resize of the already-loaded full-quality image —
+// instant, no re-encoding, and matches the node's display formula exactly.
+function renderResizedPreview(pct){
+  if(!pendingImageDataURL) return;
+  const preview = document.getElementById('fpPreview');
+  preview.src = pendingImageDataURL;
+  const dispW = Math.round(40 + 140 * (pct/100));
+  preview.style.width = dispW + 'px';
+  preview.style.maxWidth = 'none';
+  preview.style.height = 'auto';
+  preview.classList.add('show');
+}
+
 function openFieldPopup(anchorEl, node, field){
   currentFieldNode = node; currentFieldName = field;
   const isImage = field === 'image';
-  document.getElementById('fpLabel').textContent = isImage ? 'Image URL' : 'Link URL (e.g. Google Sheets)';
-  const input = document.getElementById('fpInput');
-  input.placeholder = isImage ? 'https://example.com/photo.jpg' : 'https://docs.google.com/...';
-  input.value = node[field] || '';
+  document.getElementById('fpLabel').textContent = isImage ? 'Image (upload from your device)' : 'Link URL (e.g. Google Sheets)';
+  document.getElementById('fpInput').style.display = isImage ? 'none' : 'block';
+  document.getElementById('fpFileRow').style.display = isImage ? 'flex' : 'none';
+  document.getElementById('fpSizeRow').style.display = 'none';
+  document.getElementById('fpFileInput').value = '';
+  document.getElementById('fpFileName').textContent = 'No file chosen';
   const preview = document.getElementById('fpPreview');
-  if(isImage && input.value){ preview.src = input.value; preview.classList.add('show'); } else { preview.classList.remove('show'); preview.src=''; }
+  preview.classList.remove('show'); preview.src = '';
+  pendingImageDataURL = ''; pendingImageBase = null;
+
+  if(isImage){
+    if(node.image){
+      loadImageIntoPending(node.image).then(()=>{
+        const pct = node.imageScale || 100;
+        document.getElementById('fpSizeSlider').value = pct;
+        document.getElementById('fpSizeVal').textContent = pct;
+        document.getElementById('fpSizeRow').style.display = 'flex';
+        renderResizedPreview(pct);
+      });
+    }
+  } else {
+    document.getElementById('fpInput').value = node.link || '';
+  }
 
   const rect = anchorEl.getBoundingClientRect();
   const wrapRect = document.getElementById('editorStageWrap').getBoundingClientRect();
-  fieldPopup.style.left = Math.max(8, rect.left - wrapRect.left - 100) + 'px';
-  fieldPopup.style.top = (rect.top - wrapRect.top - 170) + 'px';
+  fieldPopup.style.left = Math.max(8, rect.left - wrapRect.left - 110) + 'px';
+  fieldPopup.style.top = Math.max(8, rect.top - wrapRect.top - 210) + 'px';
   fieldPopup.classList.add('open');
-  input.focus();
+  if(!isImage) document.getElementById('fpInput').focus();
 }
-document.getElementById('fpInput').addEventListener('input', (e)=>{
-  const preview = document.getElementById('fpPreview');
-  if(currentFieldName==='image' && e.target.value){ preview.src = e.target.value; preview.classList.add('show'); }
-  else { preview.classList.remove('show'); }
+
+document.getElementById('fpFileInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  document.getElementById('fpFileName').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    loadImageIntoPending(reader.result).then(()=>{
+      document.getElementById('fpSizeSlider').value = 100;
+      document.getElementById('fpSizeVal').textContent = '100';
+      document.getElementById('fpSizeRow').style.display = 'flex';
+      renderResizedPreview(100);
+    });
+  };
+  reader.readAsDataURL(file);
+});
+document.getElementById('fpSizeSlider').addEventListener('input', (e)=>{
+  document.getElementById('fpSizeVal').textContent = e.target.value;
+  renderResizedPreview(e.target.value);
 });
 document.getElementById('fpInput').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); document.getElementById('fpSave').click(); } });
 document.getElementById('fpSave').addEventListener('click', ()=>{
-  if(currentFieldNode){
-    pushEditorUndo();
-    currentFieldNode[currentFieldName] = document.getElementById('fpInput').value.trim();
-    fieldPopup.classList.remove('open');
-    renderEditor();
+  if(!currentFieldNode) return;
+  pushEditorUndo();
+  if(currentFieldName === 'link'){
+    currentFieldNode.link = document.getElementById('fpInput').value.trim();
+  } else {
+    currentFieldNode.image = pendingImageDataURL || currentFieldNode.image || '';
+    currentFieldNode.imageScale = Number(document.getElementById('fpSizeSlider').value) || 100;
   }
+  fieldPopup.classList.remove('open');
+  renderEditor();
 });
 document.getElementById('fpClear').addEventListener('click', ()=>{
-  if(currentFieldNode){
-    pushEditorUndo();
-    currentFieldNode[currentFieldName] = '';
-    fieldPopup.classList.remove('open');
-    renderEditor();
-  }
+  if(!currentFieldNode) return;
+  pushEditorUndo();
+  if(currentFieldName === 'link'){ currentFieldNode.link = ''; }
+  else { currentFieldNode.image = ''; currentFieldNode.imageScale = 100; pendingImageDataURL=''; pendingImageBase=null; }
+  fieldPopup.classList.remove('open');
+  renderEditor();
 });
 document.addEventListener('click', (e)=>{
   if(!e.target.closest('#colorPopup') && !e.target.closest('.eswatch')) colorPopup.classList.remove('open');
   if(!e.target.closest('#fieldPopup') && !e.target.closest('.etool.link') && !e.target.closest('.etool.image')) fieldPopup.classList.remove('open');
-  if(!e.target.closest('#newProjPopup') && !e.target.closest('#btnNewProject')) newProjPopup.classList.remove('open');
+  if(!e.target.closest('#newProjPopup') && !e.target.closest('#btnNewProjectTop')) newProjPopup.classList.remove('open');
 });
 
-/* ---- node reposition drag ---- */
+/* ---- node reposition drag (single node, or the whole selected group) ---- */
 function startNodeDrag(node, card, e){
   e.stopPropagation();
+  const isGroup = selectedNodeIds.has(node.id) && selectedNodeIds.size > 1;
+  const groupNodes = isGroup ? [...selectedNodeIds].map(id=>findNode(editDATA,id)).filter(Boolean) : [node];
   let moved = false;
   card.classList.add('dragging');
   let lastX=e.clientX, lastY=e.clientY;
+  const startX=e.clientX, startY=e.clientY;
   function move(ev){
     const dx=(ev.clientX-lastX)/ezoom, dy=(ev.clientY-lastY)/ezoom;
-    if(Math.abs(ev.clientX-e.clientX)>3 || Math.abs(ev.clientY-e.clientY)>3){
-      if(!moved){ pushEditorUndo(); moved = true; }
-    }
-    node.ex += dx; node.ey += dy;
+    if(!moved && (Math.abs(ev.clientX-startX)>3 || Math.abs(ev.clientY-startY)>3)){ pushEditorUndo(); moved = true; }
+    groupNodes.forEach(gn=>{ gn.ex += dx; gn.ey += dy; });
     lastX=ev.clientX; lastY=ev.clientY;
     renderEditor();
   }
@@ -1015,11 +1211,62 @@ function findNode(root, id){
   return null;
 }
 
-/* ---- pan & zoom — editor ---- */
+/* ---- pan (hold Space + drag, or middle mouse button) & marquee box-select (plain drag) — editor ---- */
 let edDragging=false, edLastX=0, edLastY=0;
-editorStage.addEventListener('mousedown', e=>{ if(e.target!==editorStage && e.target!==editorWorld) return; edDragging=true; edLastX=e.clientX; edLastY=e.clientY; editorStage.classList.add('grabbing'); });
-window.addEventListener('mousemove', e=>{ if(!edDragging) return; epanX+=e.clientX-edLastX; epanY+=e.clientY-edLastY; edLastX=e.clientX; edLastY=e.clientY; applyEditorTransform(); });
-window.addEventListener('mouseup', ()=>{ edDragging=false; editorStage.classList.remove('grabbing'); });
+let spaceHeld = false;
+document.addEventListener('keydown', e=>{ if(e.code==='Space' && editorOpen) spaceHeld = true; });
+document.addEventListener('keyup', e=>{ if(e.code==='Space') spaceHeld = false; });
+
+const marqueeEl = document.getElementById('marquee');
+let marqueeActive = false, marqueeStartClient = null, marqueeMoved = false;
+
+editorStage.addEventListener('mousedown', e=>{
+  if(e.target!==editorStage && e.target!==editorWorld) return;
+  if(e.button===1 || spaceHeld){
+    edDragging=true; edLastX=e.clientX; edLastY=e.clientY; editorStage.classList.add('grabbing');
+    return;
+  }
+  // start marquee selection
+  marqueeActive = true; marqueeMoved = false;
+  marqueeStartClient = { x:e.clientX, y:e.clientY };
+  const rect = editorStage.getBoundingClientRect();
+  marqueeEl.style.left = (e.clientX-rect.left)+'px';
+  marqueeEl.style.top = (e.clientY-rect.top)+'px';
+  marqueeEl.style.width = '0px'; marqueeEl.style.height = '0px';
+});
+window.addEventListener('mousemove', e=>{
+  if(edDragging){ epanX+=e.clientX-edLastX; epanY+=e.clientY-edLastY; edLastX=e.clientX; edLastY=e.clientY; applyEditorTransform(); return; }
+  if(marqueeActive){
+    marqueeMoved = true;
+    const rect = editorStage.getBoundingClientRect();
+    const x0 = marqueeStartClient.x-rect.left, y0 = marqueeStartClient.y-rect.top;
+    const x1 = e.clientX-rect.left, y1 = e.clientY-rect.top;
+    const left = Math.min(x0,x1), top = Math.min(y0,y1);
+    marqueeEl.style.display = 'block';
+    marqueeEl.style.left = left+'px'; marqueeEl.style.top = top+'px';
+    marqueeEl.style.width = Math.abs(x1-x0)+'px'; marqueeEl.style.height = Math.abs(y1-y0)+'px';
+  }
+});
+window.addEventListener('mouseup', e=>{
+  edDragging=false; editorStage.classList.remove('grabbing');
+  if(marqueeActive){
+    if(marqueeMoved){
+      const box = marqueeEl.getBoundingClientRect();
+      selectedNodeIds.clear();
+      editorWorld.querySelectorAll('.enode-card').forEach(card=>{
+        const r = card.getBoundingClientRect();
+        const intersects = !(r.right<box.left || r.left>box.right || r.bottom<box.top || r.top>box.bottom);
+        if(intersects) selectedNodeIds.add(card.closest('.enode').dataset.id);
+      });
+      renderEditor();
+    } else {
+      // plain click on empty background — deselect
+      if(selectedNodeIds.size){ selectedNodeIds.clear(); renderEditor(); }
+    }
+    marqueeActive = false; marqueeMoved = false;
+    marqueeEl.style.display = 'none';
+  }
+});
 editorStage.addEventListener('wheel', e=>{
   e.preventDefault();
   const delta = e.deltaY>0?0.9:1.1;
