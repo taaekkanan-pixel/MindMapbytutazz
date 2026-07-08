@@ -611,19 +611,48 @@ async function syncToCloud(){
 async function fetchFromCloud(){
   const cfg = loadCloudConfig();
   if(!cfg.url){ showToast('Please enter and save a Cloud URL first.', 4000); return; }
+  showToast('Fetching latest data from the cloud…', 2500);
   try{
+    // A cache-busting query param stops the browser (and any intermediate
+    // cache) from ever serving a stale response for this GET — Apps Script
+    // URLs are otherwise easy to cache once hit.
+    const bustUrl = cfg.url + (cfg.url.indexOf('?') > -1 ? '&' : '?') + '_t=' + Date.now();
     // redirect:'follow' makes the browser transparently follow Google's
     // 302 (Apps Script always redirects GET/POST to a signed content URL)
-    // and land on the actual JSON payload.
-    const res = await fetch(cfg.url, { method: 'GET', redirect: 'follow' });
-    if(!res.ok) throw new Error('Server responded with status ' + res.status);
-    const data = await res.json();
+    // and land on the actual JSON payload. 'Accept' is a CORS-safelisted
+    // header so it never triggers a preflight here.
+    const res = await fetch(bustUrl, {
+      method: 'GET',
+      redirect: 'follow',
+      cache: 'no-store',
+      headers: { 'Accept': 'application/json' }
+    });
+    if(!res.ok){
+      throw new Error('Server responded with status ' + res.status + (res.statusText ? (' ' + res.statusText) : ''));
+    }
+    // Read as text first so a non-JSON response (e.g. an Apps Script
+    // permission/login page, or an HTML error page) produces a clear,
+    // actionable error instead of a cryptic "Unexpected token" failure.
+    const rawText = await res.text();
+    let data;
+    try{
+      data = JSON.parse(rawText);
+    }catch(parseErr){
+      throw new Error('Response was not valid JSON. Check the Apps Script deployment settings (Execute as: Me, Who has access: Anyone) and that doGet() returns output via ContentService with JSON mime type.');
+    }
     const payload = (data && data.record && typeof data.record === 'object') ? data.record : data;
+    if(!payload || typeof payload !== 'object' || !payload.projects){
+      throw new Error('Cloud data did not contain a valid backup payload (missing "projects").');
+    }
     const proceed = confirm('Fetching will REPLACE all projects currently stored on this device with the cloud data. Continue?');
-    if(proceed) applyImportedPayload(payload);
-    else showToast('Fetch cancelled.', 2500);
+    if(proceed){
+      const ok = applyImportedPayload(payload);
+      if(ok) showToast('Fetched and restored the latest data from the cloud.', 3500);
+    } else {
+      showToast('Fetch cancelled.', 2500);
+    }
   }catch(err){
-    showToast('Cloud fetch failed: ' + err.message, 6000);
+    showToast('Cloud fetch failed: ' + err.message, 7000);
   }
 }
 
