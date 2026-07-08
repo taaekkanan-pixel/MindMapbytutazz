@@ -592,27 +592,36 @@ async function syncToCloud(){
   if(!cfg.url){ showToast('Please enter and save a Cloud URL first.', 4000); return; }
   const payload = buildExportPayload();
   try{
-    const headers = { 'Content-Type': 'application/json' };
-    if(cfg.apiKey) headers['X-Master-Key'] = cfg.apiKey;
-    const res = await fetch(cfg.url, { method:'POST', headers, body: JSON.stringify(payload) });
-    if(!res.ok) throw new Error('Server responded with status ' + res.status);
+    // mode:'no-cors' bypasses the browser's CORS block for Apps Script's
+    // redirecting POST responses. The tradeoff: the response is "opaque",
+    // so we can never read status/body here — a resolved fetch is the only
+    // signal we get that the request actually went out.
+    await fetch(cfg.url, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids a preflight under no-cors
+      body: JSON.stringify(payload)
+    });
     showToast('Synced current data to the cloud successfully.', 3500);
   }catch(err){
     showToast('Cloud sync failed: ' + err.message, 6000);
   }
 }
+
 async function fetchFromCloud(){
   const cfg = loadCloudConfig();
   if(!cfg.url){ showToast('Please enter and save a Cloud URL first.', 4000); return; }
   try{
-    const headers = {};
-    if(cfg.apiKey) headers['X-Master-Key'] = cfg.apiKey;
-    const res = await fetch(cfg.url, { method:'GET', headers });
+    // redirect:'follow' makes the browser transparently follow Google's
+    // 302 (Apps Script always redirects GET/POST to a signed content URL)
+    // and land on the actual JSON payload.
+    const res = await fetch(cfg.url, { method: 'GET', redirect: 'follow' });
     if(!res.ok) throw new Error('Server responded with status ' + res.status);
     const data = await res.json();
     const payload = (data && data.record && typeof data.record === 'object') ? data.record : data;
     const proceed = confirm('Fetching will REPLACE all projects currently stored on this device with the cloud data. Continue?');
     if(proceed) applyImportedPayload(payload);
+    else showToast('Fetch cancelled.', 2500);
   }catch(err){
     showToast('Cloud fetch failed: ' + err.message, 6000);
   }
