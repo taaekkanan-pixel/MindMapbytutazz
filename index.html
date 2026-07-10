@@ -233,6 +233,39 @@
   .lightbox-close{ position:absolute; top:-16px; right:-16px; width:34px; height:34px; border-radius:50%; background:#0e1626;
     border:1px solid var(--panel-border); color:#fff; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(0,0,0,.5); }
   @keyframes lbIn{ from{opacity:0; transform:scale(.9);} to{opacity:1; transform:scale(1);} }
+  /* ---------- PRESENTATION MODE ---------- */
+#topbar{
+  transition: transform .4s cubic-bezier(.22,.68,.2,1), opacity .3s ease;
+}
+#topbar.presenting{
+  transform: translateX(-50%) translateY(-140%);
+  opacity: 0;
+  pointer-events: none;
+}
+#btnExitPresent{
+  position: absolute;
+  top: 14px;
+  right: 20px;
+  z-index: 20;
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 10px;
+  background: rgba(12,20,36,0.8);
+  border: 1px solid var(--panel-border);
+  color: var(--text-mid);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  letter-spacing: .03em;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 4px 16px rgba(0,0,0,.35);
+  transition: all .15s ease, opacity .3s ease;
+  opacity: 0;
+}
+#btnExitPresent.show{ display: flex; opacity: 1; }
+#btnExitPresent:hover{ color: var(--text-hi); background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.18); }
 </style>
 </head>
 <body>
@@ -256,9 +289,10 @@
   <button class="btn" id="btnExportJSON" title="Download all projects as a JSON backup file">⬇ EXPORT</button>
   <button class="btn" id="btnImportJSON" title="Restore projects from a JSON backup file">⬆ IMPORT</button>
   <input type="file" id="importFileInput" accept="application/json,.json" style="display:none">
-  <button class="btn" id="btnCloudSettings" title="Configure cloud sync for multiple devices">☁ CLOUD</button>
+  <button class="btn" id="btnCloudSettings" title="Configure cloud sync for multiple devices">☁ CLOUD</button><div class="divider"></div>
+  <button class="btn" id="btnPresentMode" title="Hide the toolbar for a clean presentation view (press P)">🎬 PRESENT</button>
 </div>
-
+<button class="ui" id="btnExitPresent" title="Exit Presentation Mode (P or Esc)">⤢ EXIT PRESENTATION</button>
 <div class="ui" id="hint">Click node to expand / collapse<br>Drag background to pan<br>Ctrl+Z to undo</div>
 <div class="ui" id="zoomctl"><button class="btn" id="zoomIn">+</button><button class="btn" id="zoomOut">−</button></div>
 <div class="ui" id="legend"></div>
@@ -1705,6 +1739,45 @@ editorStage.addEventListener('wheel', e=>{
   applyEditorTransform();
   scheduleEditorViewSave();
 }, {passive:false});
+  /* =========================================================
+   PRESENTATION MODE — hides the topbar for a clean canvas
+   ========================================================= */
+const PRESENTATION_KEY = 'mm_presentation_mode_v1';
+let presentationMode = false;
+
+function applyPresentationMode(){
+  const topbarEl = document.getElementById('topbar');
+  const exitBtn = document.getElementById('btnExitPresent');
+  topbarEl.classList.toggle('presenting', presentationMode);
+  exitBtn.classList.toggle('show', presentationMode);
+}
+
+function setPresentationMode(on){
+  presentationMode = !!on;
+  applyPresentationMode();
+  safeSet(PRESENTATION_KEY, presentationMode ? '1' : '0');
+}
+
+function togglePresentationMode(){
+  setPresentationMode(!presentationMode);
+}
+
+document.getElementById('btnPresentMode').addEventListener('click', ()=> setPresentationMode(true));
+document.getElementById('btnExitPresent').addEventListener('click', ()=> setPresentationMode(false));
+
+document.addEventListener('keydown', (e)=>{
+  if(e.target && (e.target.tagName==='INPUT' || e.target.tagName==='TEXTAREA')) return;
+  if(editorOpen) return; // don't trigger while the Diagram Editor is open
+  if(e.key==='p' || e.key==='P'){ togglePresentationMode(); }
+  if(e.key==='Escape' && presentationMode){ setPresentationMode(false); }
+});
+
+// Restore last-used state on load, same pattern as view-state persistence
+(function initPresentationMode(){
+  const saved = safeGet(PRESENTATION_KEY);
+  presentationMode = saved === '1';
+  applyPresentationMode();
+})();
 </script>
 </body>
 </html>
