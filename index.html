@@ -1739,11 +1739,26 @@ editorStage.addEventListener('wheel', e=>{
   applyEditorTransform();
   scheduleEditorViewSave();
 }, {passive:false});
-  /* =========================================================
-   PRESENTATION MODE — hides the topbar for a clean canvas
+ /* =========================================================
+   PRESENTATION MODE — hides the topbar + goes fullscreen
    ========================================================= */
 const PRESENTATION_KEY = 'mm_presentation_mode_v1';
 let presentationMode = false;
+
+/* ---- cross-browser Fullscreen API helpers ---- */
+function requestFullscreen(el){
+  const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+  if(fn) return fn.call(el);
+  return Promise.reject(new Error('Fullscreen API not supported in this browser.'));
+}
+function exitFullscreen(){
+  const fn = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+  if(fn) return fn.call(document);
+  return Promise.resolve();
+}
+function isFullscreenActive(){
+  return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+}
 
 function applyPresentationMode(){
   const topbarEl = document.getElementById('topbar');
@@ -1753,9 +1768,21 @@ function applyPresentationMode(){
 }
 
 function setPresentationMode(on){
-  presentationMode = !!on;
+  const turningOn = !!on;
+  if(turningOn === presentationMode) return;
+  presentationMode = turningOn;
   applyPresentationMode();
   safeSet(PRESENTATION_KEY, presentationMode ? '1' : '0');
+
+  if(turningOn){
+    requestFullscreen(document.documentElement).catch(()=>{
+      // Fullscreen can be blocked (e.g. no user gesture, iframe restrictions,
+      // or unsupported browser) — presentation mode still works without it.
+      showToast('Fullscreen was blocked by the browser, but Presentation Mode is still active.', 3500);
+    });
+  } else {
+    if(isFullscreenActive()) exitFullscreen().catch(()=>{});
+  }
 }
 
 function togglePresentationMode(){
@@ -1769,10 +1796,31 @@ document.addEventListener('keydown', (e)=>{
   if(e.target && (e.target.tagName==='INPUT' || e.target.tagName==='TEXTAREA')) return;
   if(editorOpen) return; // don't trigger while the Diagram Editor is open
   if(e.key==='p' || e.key==='P'){ togglePresentationMode(); }
-  if(e.key==='Escape' && presentationMode){ setPresentationMode(false); }
+  if(e.key==='Escape' && presentationMode && !isFullscreenActive()){
+    // If the browser is still fullscreen, its own Esc-handling will fire a
+    // fullscreenchange event and we'll sync state there instead — this
+    // branch only covers the case where Fullscreen API was unavailable.
+    setPresentationMode(false);
+  }
 });
 
-// Restore last-used state on load, same pattern as view-state persistence
+/* ---- keep our state in sync when fullscreen is exited via the browser's
+   own UI/Esc handling (not just our button), so the topbar reliably comes
+   back in every exit path ---- */
+['fullscreenchange','webkitfullscreenchange','mozfullscreenchange','MSFullscreenChange'].forEach(evt=>{
+  document.addEventListener(evt, ()=>{
+    if(!isFullscreenActive() && presentationMode){
+      presentationMode = false;
+      applyPresentationMode();
+      safeSet(PRESENTATION_KEY, '0');
+    }
+  });
+});
+
+// Restore last-used state on load. Note: browsers block requestFullscreen()
+// without a user gesture, so on load we only restore the hidden-topbar UI
+// state, not fullscreen itself — the user can press P or the button to
+// re-enter true fullscreen.
 (function initPresentationMode(){
   const saved = safeGet(PRESENTATION_KEY);
   presentationMode = saved === '1';
