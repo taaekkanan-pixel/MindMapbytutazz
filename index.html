@@ -129,6 +129,10 @@
     border:1.6px solid color-mix(in srgb, var(--c,#93a5c4) 60%, transparent);
     color:var(--text-hi); font-size:13.5px; max-width:170px; min-width:70px; line-height:1.35;
     cursor:grab; user-select:none; box-shadow:0 4px 16px rgba(0,0,0,.4), 0 0 18px color-mix(in srgb, var(--c,#93a5c4) 22%, transparent); }
+  .enode-card.has-children{ padding-right:28px; }
+  .enode-card.has-children::after{ content:''; position:absolute; right:9px; top:16px; width:6px; height:6px;
+    border-right:1.6px solid currentColor; border-bottom:1.6px solid currentColor; transform:rotate(45deg); opacity:.78; transition:transform .2s ease, top .2s ease; }
+  .enode-card.expanded.has-children::after{ transform:rotate(-135deg); top:13px; }
   .enode-card.dragging{ cursor:grabbing; box-shadow:0 8px 30px rgba(0,0,0,.6); z-index:20; }
   .enode-card.eselected{ outline:2px solid var(--info); outline-offset:2px; box-shadow:0 8px 30px rgba(0,0,0,.6), 0 0 0 4px rgba(143,215,255,0.18); }
   #marquee{ position:absolute; z-index:15; border:1.5px solid rgba(143,215,255,0.8); background:rgba(143,215,255,0.12); pointer-events:none; display:none; }
@@ -1189,6 +1193,7 @@ const newProjPopup = document.getElementById('newProjPopup');
 let epanX=0, epanY=0, ezoom=1;
 let currentFieldNode = null, currentFieldName = null;
 let selectedNodeIds = new Set();
+let suppressNextEditorCardClick = false;
 
 /* ---- editor view-state persistence: remembers pan/zoom of the diagram
    editor canvas per project, same pattern as the main view canvas ---- */
@@ -1212,6 +1217,22 @@ function loadEditorViewState(){
 function scheduleEditorViewSave(){
   clearTimeout(_editorViewSaveTimer);
   _editorViewSaveTimer = setTimeout(saveEditorViewState, 300);
+}
+function expandEditorSubtree(node){
+  if(!node.children.length) return;
+  node.expanded = true;
+  node.children.forEach(expandEditorSubtree);
+}
+function collapseEditorSubtree(node){
+  node.expanded = false;
+  node.children.forEach(collapseEditorSubtree);
+}
+function toggleEditorNode(node){
+  if(!node.children.length) return;
+  pushEditorUndo();
+  if(node.expanded) collapseEditorSubtree(node);
+  else expandEditorSubtree(node);
+  renderEditor();
 }
 
 function openEditor(){
@@ -1327,7 +1348,7 @@ function renderEditor(){
       path.style.stroke = n.color;
       lineFrag.appendChild(path);
     }
-    n.children.forEach(walk);
+    if(n.expanded) n.children.forEach(walk);
   })(editDATA);
 
   (function walk(n){
@@ -1337,7 +1358,8 @@ function renderEditor(){
     wrap.dataset.id = n.id;
 
     const card = document.createElement('div');
-    card.className = 'enode-card' + (selectedNodeIds.has(n.id) ? ' eselected' : '');
+    const hasKids = n.children.length > 0;
+    card.className = 'enode-card' + (hasKids ? ' has-children' : '') + (n.expanded ? ' expanded' : '') + (selectedNodeIds.has(n.id) ? ' eselected' : '');
     card.style.setProperty('--c', n.parent ? n.color : ROOT_COLOR);
 
     const label = document.createElement('span');
@@ -1394,6 +1416,7 @@ function renderEditor(){
       const newColor = isRoot ? PALETTE[n.children.length % PALETTE.length] : n.color;
       const child = { id:'e'+(edIdc++), label:'New Topic', color:newColor, expanded:false, link:'', image:'',
                        ex:n.ex+120+(Math.random()*60-30), ey:n.ey+(Math.random()*140-70), parent:n, children:[] };
+      n.expanded = true;
       n.children.push(child);
       renderEditor();
     });
@@ -1446,10 +1469,19 @@ function renderEditor(){
       if(!selectedNodeIds.has(n.id) && selectedNodeIds.size){ selectedNodeIds.clear(); }
       startNodeDrag(n, card, e);
     });
+    card.addEventListener('click', e=>{
+      if(e.target.closest('.etool')||e.target.closest('.ehandle')||e.target.closest('.eswatch')||e.target.tagName==='INPUT') return;
+      e.stopPropagation();
+      if(suppressNextEditorCardClick){
+        suppressNextEditorCardClick = false;
+        return;
+      }
+      toggleEditorNode(n);
+    });
 
     wrap.appendChild(card);
     nodeFrag.appendChild(wrap);
-    n.children.forEach(walk);
+    if(n.expanded) n.children.forEach(walk);
   })(editDATA);
 
   elines.appendChild(lineFrag);
@@ -1616,7 +1648,15 @@ function startNodeDrag(node, card, e){
     lastX=ev.clientX; lastY=ev.clientY;
     renderEditor();
   }
-  function up(){ card.classList.remove('dragging'); window.removeEventListener('mousemove',move); window.removeEventListener('mouseup',up); }
+  function up(){
+    if(moved){
+      suppressNextEditorCardClick = true;
+      setTimeout(()=>{ suppressNextEditorCardClick = false; }, 0);
+    }
+    card.classList.remove('dragging');
+    window.removeEventListener('mousemove',move);
+    window.removeEventListener('mouseup',up);
+  }
   window.addEventListener('mousemove',move);
   window.addEventListener('mouseup',up);
 }
@@ -1650,6 +1690,8 @@ function startLinkDrag(sourceNode, e){
         if(idx>-1) target.parent.children.splice(idx,1);
         target.parent = sourceNode;
         sourceNode.children.push(target);
+        sourceNode.expanded = true;
+        expandEditorSubtree(target);
         const newColor = (sourceNode===editDATA) ? (target.color || PALETTE[(sourceNode.children.length-1) % PALETTE.length]) : sourceNode.color;
         (function applyColor(n, col){ n.color = col; n.children.forEach(c=>applyColor(c, col)); })(target, newColor);
         renderEditor();
