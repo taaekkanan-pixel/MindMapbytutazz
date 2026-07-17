@@ -1194,6 +1194,7 @@ let epanX=0, epanY=0, ezoom=1;
 let currentFieldNode = null, currentFieldName = null;
 let selectedNodeIds = new Set();
 let suppressNextEditorCardClick = false;
+let editorCardClickTimer = null;
 
 /* ---- editor view-state persistence: remembers pan/zoom of the diagram
    editor canvas per project, same pattern as the main view canvas ---- */
@@ -1233,6 +1234,12 @@ function toggleEditorNode(node){
   if(node.expanded) collapseEditorSubtree(node);
   else expandEditorSubtree(node);
   renderEditor();
+}
+function cancelEditorCardClick(){
+  if(editorCardClickTimer){
+    clearTimeout(editorCardClickTimer);
+    editorCardClickTimer = null;
+  }
 }
 
 function openEditor(){
@@ -1387,8 +1394,12 @@ function renderEditor(){
       card.appendChild(thumb);
     }
 
-    label.addEventListener('dblclick', (e)=>{
-      e.stopPropagation();
+    function beginLabelEdit(e){
+      if(e){
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      cancelEditorCardClick();
       const input = document.createElement('input');
       input.className = 'elabel-input';
       input.value = n.label;
@@ -1401,7 +1412,9 @@ function renderEditor(){
       };
       input.addEventListener('blur', commit);
       input.addEventListener('keydown', ev=>{ if(ev.key==='Enter'){ ev.preventDefault(); input.blur(); } });
-    });
+    }
+    label.addEventListener('dblclick', beginLabelEdit);
+    card.addEventListener('dblclick', beginLabelEdit);
 
     const tools = document.createElement('div');
     tools.className='etools';
@@ -1476,7 +1489,11 @@ function renderEditor(){
         suppressNextEditorCardClick = false;
         return;
       }
-      toggleEditorNode(n);
+      cancelEditorCardClick();
+      editorCardClickTimer = setTimeout(()=>{
+        editorCardClickTimer = null;
+        toggleEditorNode(n);
+      }, 220);
     });
 
     wrap.appendChild(card);
