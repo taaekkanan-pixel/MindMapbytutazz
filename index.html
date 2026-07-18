@@ -1242,6 +1242,72 @@ function cancelEditorCardClick(){
   }
 }
 
+/* Evaluates the arithmetic immediately before a newly typed "=". A small
+   parser keeps label calculations limited to numbers, parentheses, and the
+   four supported operators without executing arbitrary text as code. */
+function calculateLabelExpression(expression){
+  const source = expression.replace(/,/g, '').replace(/[xX×]/g, '*').replace(/÷/g, '/').replace(/\s+/g, '');
+  if(!source || !/^[0-9.+\-*/()]+$/.test(source) || !/[+\-*/]/.test(source)) return null;
+  let index = 0;
+
+  function parseExpression(){
+    let value = parseTerm();
+    while(source[index] === '+' || source[index] === '-'){
+      const operator = source[index++];
+      const right = parseTerm();
+      value = operator === '+' ? value + right : value - right;
+    }
+    return value;
+  }
+  function parseTerm(){
+    let value = parseFactor();
+    while(source[index] === '*' || source[index] === '/'){
+      const operator = source[index++];
+      const right = parseFactor();
+      value = operator === '*' ? value * right : value / right;
+    }
+    return value;
+  }
+  function parseFactor(){
+    if(source[index] === '+' || source[index] === '-'){
+      const sign = source[index++] === '-' ? -1 : 1;
+      return sign * parseFactor();
+    }
+    if(source[index] === '('){
+      index++;
+      const value = parseExpression();
+      if(source[index] !== ')') throw new Error('Missing closing parenthesis');
+      index++;
+      return value;
+    }
+    const match = source.slice(index).match(/^(?:\d+(?:\.\d*)?|\.\d+)/);
+    if(!match) throw new Error('Expected number');
+    index += match[0].length;
+    return Number(match[0]);
+  }
+
+  try{
+    const result = parseExpression();
+    if(index !== source.length || !Number.isFinite(result)) return null;
+    const rounded = Math.round((result + Number.EPSILON) * 1e10) / 1e10;
+    return Object.is(rounded, -0) ? 0 : rounded;
+  }catch(e){
+    return null;
+  }
+}
+
+function appendLabelCalculation(input){
+  const caret = input.selectionStart;
+  if(caret === null || caret < 2 || input.value[caret - 1] !== '=') return;
+  const beforeEquals = input.value.slice(0, caret - 1);
+  let start = beforeEquals.length;
+  while(start > 0 && /[0-9.,+\-*/()xX×÷\s]/.test(beforeEquals[start - 1])) start--;
+  const result = calculateLabelExpression(beforeEquals.slice(start).trim());
+  if(result === null) return;
+  const formatted = result.toLocaleString('en-US', { maximumFractionDigits:10, useGrouping:true });
+  input.setRangeText(formatted, caret, caret, 'end');
+}
+
 function openEditor(){
   edIdc = 0;
   editorUndoStack = [];
@@ -1411,6 +1477,7 @@ function renderEditor(){
         renderEditor();
       };
       input.addEventListener('blur', commit);
+      input.addEventListener('input', ()=>appendLabelCalculation(input));
       input.addEventListener('keydown', ev=>{ if(ev.key==='Enter'){ ev.preventDefault(); input.blur(); } });
     }
     label.addEventListener('dblclick', beginLabelEdit);
