@@ -1716,11 +1716,25 @@ document.addEventListener('click', (e)=>{
   if(!e.target.closest('#newProjPopup') && !e.target.closest('#btnNewProjectTop')) newProjPopup.classList.remove('open');
 });
 
-/* ---- node reposition drag (single node, or the whole selected group) ---- */
+function collectEditorSubtreeNodes(roots){
+  const nodes = [];
+  const seen = new Set();
+  function visit(node){
+    if(!node || seen.has(node.id)) return;
+    seen.add(node.id);
+    nodes.push(node);
+    node.children.forEach(visit);
+  }
+  roots.forEach(visit);
+  return nodes;
+}
+
+/* ---- node reposition drag (selected nodes and all of their descendants) ---- */
 function startNodeDrag(node, card, e){
   e.stopPropagation();
   const isGroup = selectedNodeIds.has(node.id) && selectedNodeIds.size > 1;
-  const groupNodes = isGroup ? [...selectedNodeIds].map(id=>findNode(editDATA,id)).filter(Boolean) : [node];
+  const dragRoots = isGroup ? [...selectedNodeIds].map(id=>findNode(editDATA,id)).filter(Boolean) : [node];
+  const groupNodes = collectEditorSubtreeNodes(dragRoots);
   let moved = false;
   card.classList.add('dragging');
   let lastX=e.clientX, lastY=e.clientY;
