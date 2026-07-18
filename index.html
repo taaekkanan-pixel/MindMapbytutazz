@@ -197,6 +197,89 @@
   .fp-slider-row input[type=range]{ flex:1; accent-color:var(--info); }
   .fp-slider-label{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--text-dim); white-space:nowrap; }
 
+  /* ---------- TRIP CALCULATOR ---------- */
+  #calculatorOverlay{ position:fixed; inset:0; z-index:1200; display:none; flex-direction:column; overflow:hidden;
+    background:#080d16; color:var(--text-hi); }
+  #calculatorOverlay.open{ display:flex; }
+  .calc-head{ flex:0 0 auto; display:flex; align-items:center; gap:10px; padding:11px 16px;
+    background:#0d1522; border-bottom:1px solid var(--panel-border); }
+  .calc-brand{ display:flex; flex-direction:column; min-width:180px; }
+  .calc-brand strong{ font-size:15px; color:var(--ok); }
+  .calc-brand span{ font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--text-dim); }
+  .calc-source{ display:flex; align-items:center; gap:7px; flex:1; min-width:260px; }
+  .calc-source input{ min-width:160px; flex:1; font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--text-hi);
+    background:#09101b; border:1px solid var(--panel-border); border-radius:6px; padding:7px 9px; outline:none; }
+  .calc-source input:focus{ border-color:var(--info); }
+  .calc-status{ min-width:110px; font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--text-dim); text-align:right; }
+  .calc-status.ready{ color:var(--ok); }
+  .calc-status.busy{ color:var(--info); }
+  .calc-status.error{ color:var(--danger); }
+  .calc-nav{ flex:0 0 auto; display:flex; gap:2px; padding:0 16px; background:#0b121e; border-bottom:1px solid var(--panel-border); }
+  .calc-tab{ border:0; border-bottom:2px solid transparent; padding:10px 14px; background:transparent; color:var(--text-dim);
+    font-family:'IBM Plex Mono',monospace; font-size:10px; cursor:pointer; }
+  .calc-tab.active{ color:var(--info); border-bottom-color:var(--info); }
+  .calc-body{ flex:1; overflow:auto; }
+  .calc-view{ display:none; min-height:100%; }
+  .calc-view.active{ display:block; }
+  .calc-band{ padding:18px 22px; border-bottom:1px solid var(--panel-border); }
+  .calc-band-head{ display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:12px; }
+  .calc-band-head h2{ margin:0; font-size:16px; letter-spacing:0; }
+  .calc-band-head p{ margin:3px 0 0; color:var(--text-dim); font-size:11px; }
+  .calc-metrics{ display:grid; grid-template-columns:repeat(6,minmax(120px,1fr)); gap:8px; }
+  .calc-metric{ min-width:0; padding:12px; background:#0d1624; border:1px solid var(--panel-border); border-radius:6px; }
+  .calc-metric .k{ display:block; color:var(--text-dim); font-family:'IBM Plex Mono',monospace; font-size:9px; margin-bottom:5px; }
+  .calc-metric .v{ display:block; font-size:21px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .calc-metric.ok .v{ color:var(--ok); } .calc-metric.info .v{ color:var(--info); }
+  .calc-metric.warn .v{ color:#ffcf7a; } .calc-metric.danger .v{ color:var(--danger); }
+  .calc-two-col{ display:grid; grid-template-columns:minmax(0,1.35fr) minmax(300px,.65fr); gap:14px; }
+  .calc-panel{ min-width:0; background:#0b131f; border:1px solid var(--panel-border); border-radius:6px; overflow:hidden; }
+  .calc-panel-title{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px;
+    background:#101a29; border-bottom:1px solid var(--panel-border); font-size:12px; font-weight:600; }
+  .calc-panel-body{ padding:12px; }
+  .calc-table-wrap{ width:100%; overflow:auto; }
+  .calc-table{ width:100%; border-collapse:collapse; font-size:11px; }
+  .calc-table th{ position:sticky; top:0; z-index:1; padding:8px 9px; text-align:left; color:var(--text-dim);
+    background:#101a29; border-bottom:1px solid var(--panel-border); font-family:'IBM Plex Mono',monospace; font-size:9px; white-space:nowrap; }
+  .calc-table td{ padding:8px 9px; border-bottom:1px solid rgba(255,255,255,.045); vertical-align:middle; }
+  .calc-table tr:hover td{ background:rgba(255,255,255,.025); }
+  .calc-num{ text-align:right !important; font-family:'IBM Plex Mono',monospace; white-space:nowrap; }
+  .calc-person-name{ font-weight:600; } .calc-muted{ color:var(--text-dim); }
+  .calc-role{ display:inline-flex; padding:2px 6px; border-radius:4px; background:rgba(143,215,255,.1); color:var(--info);
+    font-family:'IBM Plex Mono',monospace; font-size:9px; }
+  .calc-role.follower{ color:#ffcf7a; background:rgba(255,207,122,.1); }
+  .calc-role.child{ color:#f6a9d3; background:rgba(246,169,211,.1); }
+  .calc-check{ width:15px; height:15px; accent-color:var(--ok); cursor:pointer; }
+  .calc-list{ display:flex; flex-direction:column; gap:7px; }
+  .calc-list-row{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding-bottom:7px;
+    border-bottom:1px solid rgba(255,255,255,.045); font-size:11px; }
+  .calc-list-row:last-child{ border:0; padding-bottom:0; }
+  .calc-list-row strong{ font-family:'IBM Plex Mono',monospace; white-space:nowrap; }
+  .calc-list-row.total{ padding-top:4px; color:var(--ok); font-size:12px; }
+  .calc-alerts{ display:flex; flex-direction:column; gap:7px; }
+  .calc-alert{ padding:9px 10px; border-left:3px solid var(--info); background:rgba(143,215,255,.06); font-size:11px; line-height:1.45; }
+  .calc-alert.warn{ border-color:#ffcf7a; background:rgba(255,207,122,.06); }
+  .calc-alert.ok{ border-color:var(--ok); background:rgba(78,225,160,.06); }
+  .calc-toolbar{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .calc-search{ width:220px; max-width:100%; background:#09101b; color:var(--text-hi); border:1px solid var(--panel-border);
+    border-radius:6px; padding:7px 9px; font-family:'Sarabun',sans-serif; outline:none; }
+  .calc-settings{ display:grid; grid-template-columns:repeat(3,minmax(220px,1fr)); gap:12px; }
+  .calc-setting-group{ border-top:2px solid var(--panel-border); padding-top:10px; }
+  .calc-setting-group h3{ margin:0 0 9px; font-size:12px; color:var(--info); }
+  .calc-setting-row{ display:grid; grid-template-columns:minmax(0,1fr) 100px; align-items:center; gap:10px; margin-bottom:7px; font-size:11px; }
+  .calc-setting-row input{ width:100%; padding:6px 7px; color:var(--text-hi); background:#09101b; border:1px solid var(--panel-border);
+    border-radius:5px; text-align:right; font-family:'IBM Plex Mono',monospace; outline:none; }
+  .calc-setting-row input:focus{ border-color:var(--info); }
+  .calc-setting-check{ display:flex; align-items:center; gap:8px; font-size:11px; cursor:pointer; }
+  .calc-setting-check input{ accent-color:var(--ok); }
+  .calc-table tfoot td{ padding:10px 9px; color:var(--ok); font-weight:700; border-top:2px solid var(--panel-border); }
+  .calc-empty{ padding:54px 20px; text-align:center; color:var(--text-dim); }
+  .calc-file-hidden{ position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
+  @media(max-width:1050px){ .calc-metrics{ grid-template-columns:repeat(3,1fr); } .calc-two-col{ grid-template-columns:1fr; }
+    .calc-settings{ grid-template-columns:repeat(2,1fr); } .calc-head{ flex-wrap:wrap; } .calc-brand{ min-width:140px; } }
+  @media(max-width:680px){ .calc-metrics{ grid-template-columns:repeat(2,1fr); } .calc-settings{ grid-template-columns:1fr; }
+    .calc-source{ order:3; width:100%; } .calc-status{ margin-left:auto; } .calc-band{ padding:14px 12px; }
+    .calc-nav{ overflow:auto; padding:0 8px; } }
+
   /* ---------- CLOUD SYNC POPUP (compact, scrollable, glassmorphic) ---------- */
   #cloudPopup{
     flex-direction:column;
@@ -302,6 +385,7 @@
   <button class="btn layout-toggle" id="btnLayoutCustom">CUSTOM LAYOUT</button>
   <div class="divider"></div>
   <button class="btn edit" id="btnEditData">✎ EDIT DATA</button>
+  <button class="btn edit" id="btnTripCalculator">TRIP CALC</button>
   <button class="btn" id="btnNewProjectTop">+ NEW PROJECT</button>
   <div class="divider"></div>
   <button class="btn" id="btnExportJSON" title="Download all projects as a JSON backup file">⬇ EXPORT</button>
@@ -315,6 +399,68 @@
 <div class="ui" id="zoomctl"><button class="btn" id="zoomIn">+</button><button class="btn" id="zoomOut">−</button></div>
 <div class="ui" id="legend"></div>
 <div class="ui" id="toast"></div>
+
+<div id="calculatorOverlay">
+  <div class="calc-head">
+    <div class="calc-brand"><strong>Trip Calculator</strong><span>PEOPLE / ROOMS / COSTS</span></div>
+    <div class="calc-source">
+      <input type="url" id="calcSheetUrl" placeholder="Paste Google Sheet URL">
+      <button class="btn primary" id="calcSyncBtn">SYNC</button>
+      <button class="btn" id="calcImportBtn">IMPORT CSV</button>
+      <input type="file" id="calcCsvFile" class="calc-file-hidden" accept=".csv,text/csv">
+    </div>
+    <span class="calc-status" id="calcStatus">No data loaded</span>
+    <button class="btn ghost" id="calcCloseBtn">BACK TO MAP</button>
+  </div>
+  <div class="calc-nav">
+    <button class="calc-tab active" data-calc-view="overview">OVERVIEW</button>
+    <button class="calc-tab" data-calc-view="people">PEOPLE</button>
+    <button class="calc-tab" data-calc-view="rooms">ROOMS</button>
+    <button class="calc-tab" data-calc-view="costs">COSTS</button>
+    <button class="calc-tab" data-calc-view="settings">SETTINGS</button>
+  </div>
+  <div class="calc-body">
+    <section class="calc-view active" data-calc-panel="overview">
+      <div class="calc-band">
+        <div class="calc-band-head"><div><h2>Live Trip Summary</h2><p>Calculated from the current Sheet snapshot and local attendance overrides.</p></div></div>
+        <div class="calc-metrics" id="calcMetrics"></div>
+      </div>
+      <div class="calc-band calc-two-col">
+        <div class="calc-panel"><div class="calc-panel-title"><span>Cost Summary</span><span id="calcPerPerson"></span></div><div class="calc-panel-body"><div class="calc-list" id="calcOverviewCosts"></div></div></div>
+        <div class="calc-panel"><div class="calc-panel-title"><span>Automatic Checks</span></div><div class="calc-panel-body"><div class="calc-alerts" id="calcAlerts"></div></div></div>
+      </div>
+    </section>
+    <section class="calc-view" data-calc-panel="people">
+      <div class="calc-band">
+        <div class="calc-band-head"><div><h2>People</h2><p>Toggle attendance locally to preview cancellations without changing the Sheet.</p></div>
+          <div class="calc-toolbar"><input class="calc-search" id="calcPeopleSearch" placeholder="Search name or zone"><button class="btn ghost" id="calcResetOverrides">RESET OVERRIDES</button></div></div>
+        <div class="calc-panel"><div class="calc-table-wrap"><table class="calc-table"><thead><tr><th>ATTEND</th><th>NAME</th><th>ROLE</th><th>ZONE</th><th>ROOM STATUS</th></tr></thead><tbody id="calcPeopleBody"></tbody></table></div></div>
+      </div>
+    </section>
+    <section class="calc-view" data-calc-panel="rooms">
+      <div class="calc-band">
+        <div class="calc-band-head"><div><h2>Room Allocation</h2><p>Couples stay together; friends whose followers cancel move into the shared-room pool automatically.</p></div></div>
+        <div class="calc-metrics" id="calcRoomMetrics"></div>
+      </div>
+      <div class="calc-band calc-two-col">
+        <div class="calc-panel"><div class="calc-panel-title"><span>Night 2 / Shared Rooms</span></div><div class="calc-table-wrap"><table class="calc-table"><thead><tr><th>ROOM</th><th>CAPACITY</th><th>OCCUPANTS</th><th class="calc-num">COST</th></tr></thead><tbody id="calcRoomBody"></tbody></table></div></div>
+        <div class="calc-panel"><div class="calc-panel-title"><span>Couple Rooms</span><span id="calcCoupleCount"></span></div><div class="calc-panel-body"><div class="calc-list" id="calcCoupleList"></div></div></div>
+      </div>
+    </section>
+    <section class="calc-view" data-calc-panel="costs">
+      <div class="calc-band">
+        <div class="calc-band-head"><div><h2>Cost Breakdown</h2><p>Deterministic totals from attendance, room rules, meal rates, and fixed costs.</p></div></div>
+        <div class="calc-panel"><div class="calc-table-wrap"><table class="calc-table"><thead><tr><th>CATEGORY</th><th>ITEM</th><th>CALCULATION</th><th class="calc-num">AMOUNT</th></tr></thead><tbody id="calcCostBody"></tbody><tfoot id="calcCostFoot"></tfoot></table></div></div>
+      </div>
+    </section>
+    <section class="calc-view" data-calc-panel="settings">
+      <div class="calc-band">
+        <div class="calc-band-head"><div><h2>Rules &amp; Rates</h2><p>Saved separately for this project. Mind Map data is never modified.</p></div><button class="btn ghost" id="calcResetSettings">RESET DEFAULTS</button></div>
+        <div class="calc-settings" id="calcSettingsGrid"></div>
+      </div>
+    </section>
+  </div>
+</div>
 
 <div id="editorOverlay">
   <div id="editorTop">
@@ -391,6 +537,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script>
 /* =========================================================
    STORAGE — stable key names on purpose: future code updates
@@ -854,6 +1001,289 @@ document.addEventListener('click', (e)=>{
 /* =========================================================
    VIEW MODE — radial layout / render
    ========================================================= */
+/* =========================================================
+   TRIP CALCULATOR - opt-in, read-only Sheet snapshot.
+   This uses its own storage key and never mutates map/project data.
+   ========================================================= */
+const TRIP_CALC_KEY = 'mm_trip_calculator_v1';
+const TRIP_CALC_DEFAULTS = {
+  night1Capacity:2, night1Rate:1500,
+  twinCapacity:2, twinRate:950,
+  quadCapacity:4, quadRate:2000, maxQuadRooms:2,
+  sixCapacity:6, sixRate:2800, maxSixRooms:1,
+  driverCount:12, driverRoomCapacity:6, driverRoomRate:0,
+  mealLunch1:200, mealDinner1:450, mealLunch2:300, mealDinner2:380, mealLunch3:200,
+  drinks:30000, karaoke:3500, ice:2000, vans:64800, fuel:19000,
+  mixer:10000, includeMixer:false
+};
+const TRIP_SETTING_GROUPS = [
+  {title:'Night 1', fields:[['night1Capacity','People / room'],['night1Rate','Room rate']]},
+  {title:'Night 2 / shared', fields:[['twinCapacity','Twin capacity'],['twinRate','Twin rate'],['quadCapacity','Quad capacity'],['quadRate','Quad rate'],['maxQuadRooms','Max quad rooms'],['sixCapacity','Six-person capacity'],['sixRate','Six-person rate'],['maxSixRooms','Max six-person rooms']]},
+  {title:'Drivers', fields:[['driverCount','Driver count'],['driverRoomCapacity','Drivers / room'],['driverRoomRate','Driver room rate']]},
+  {title:'Meals / adult', fields:[['mealLunch1','Day 1 lunch'],['mealDinner1','Day 1 dinner'],['mealLunch2','Day 2 lunch'],['mealDinner2','Day 2 dinner'],['mealLunch3','Day 3 lunch']]},
+  {title:'Fixed costs', fields:[['drinks','Drinks'],['karaoke','Karaoke'],['ice','Ice'],['vans','Vans'],['fuel','Fuel'],['mixer','Late mixer']]}
+];
+let tripCalcResult = null;
+
+function tripStore(){
+  try{ return JSON.parse(safeGet(TRIP_CALC_KEY) || '{}') || {}; }catch(e){ return {}; }
+}
+function tripConfig(){
+  const all = tripStore();
+  const saved = all[currentProjectId] || {};
+  return {
+    sheetUrl:saved.sheetUrl || '',
+    rows:Array.isArray(saved.rows) ? saved.rows : [],
+    syncedAt:saved.syncedAt || '',
+    overrides:saved.overrides && typeof saved.overrides === 'object' ? saved.overrides : {},
+    settings:Object.assign({}, TRIP_CALC_DEFAULTS, saved.settings || {})
+  };
+}
+function saveTripConfig(cfg){
+  const all = tripStore();
+  all[currentProjectId] = {
+    sheetUrl:cfg.sheetUrl || '', rows:Array.isArray(cfg.rows) ? cfg.rows : [],
+    syncedAt:cfg.syncedAt || '', overrides:cfg.overrides || {}, settings:cfg.settings || {}
+  };
+  safeSet(TRIP_CALC_KEY, JSON.stringify(all));
+}
+function tripMoney(n){ return Math.round(Number(n)||0).toLocaleString('en-US') + ' THB'; }
+function tripNumber(n){ return Math.round(Number(n)||0).toLocaleString('en-US'); }
+function tripStatus(text, state){
+  const el = document.getElementById('calcStatus');
+  el.textContent = text; el.className = 'calc-status' + (state ? ' ' + state : '');
+}
+function findProjectSheetUrl(node){
+  if(!node) return '';
+  if(node.link && /docs\.google\.com\/spreadsheets/i.test(node.link)) return node.link;
+  for(const child of (node.children || [])){
+    const found = findProjectSheetUrl(child); if(found) return found;
+  }
+  return '';
+}
+function sheetCsvUrl(url){
+  const id = String(url||'').match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+  if(!id) throw new Error('Google Sheet URL is not valid.');
+  const gid = String(url).match(/[?#&]gid=(\d+)/);
+  return 'https://docs.google.com/spreadsheets/d/' + id[1] + '/gviz/tq?tqx=out:csv&gid=' + (gid ? gid[1] : '0');
+}
+function normalizedCell(value){ return String(value == null ? '' : value).trim(); }
+function findHeaderIndex(headers, candidates){
+  return headers.findIndex(h=>candidates.some(c=>h.toLowerCase().includes(c.toLowerCase())));
+}
+function parseTripCsv(csvText){
+  if(typeof Papa === 'undefined') throw new Error('CSV parser did not load. Check the internet connection and try again.');
+  const parsed = Papa.parse(csvText, {skipEmptyLines:'greedy'});
+  if(parsed.errors && parsed.errors.length && !parsed.data.length) throw new Error(parsed.errors[0].message);
+  const table = parsed.data || [];
+  if(table.length < 2) throw new Error('The Sheet has no response rows.');
+  const headers = table[0].map(normalizedCell);
+  const nameAt = findHeaderIndex(headers, ['ชื่อ-นามสกุล','full name','name']);
+  const nicknameAt = findHeaderIndex(headers, ['ชื่อเล่น','nickname']);
+  const zoneAt = findHeaderIndex(headers, ['เขต','zone','area']);
+  const followerAt = findHeaderIndex(headers, ['ผู้ติดตาม','follower']);
+  if(nameAt < 0 || followerAt < 0) throw new Error('Required columns (name and follower status) were not found.');
+  return table.slice(1).map((row,index)=>({
+    row:index+2,
+    name:normalizedCell(row[nameAt]) || ('Response ' + (index+2)),
+    nickname:nicknameAt >= 0 ? normalizedCell(row[nicknameAt]) : '',
+    zone:zoneAt >= 0 ? normalizedCell(row[zoneAt]) : '',
+    follower:normalizedCell(row[followerAt])
+  })).filter(r=>r.name || r.follower);
+}
+function followerKind(value){
+  const v = normalizedCell(value).toLowerCase();
+  if(v.includes('ไม่ได้มา') || v.includes('not attend')) return 'absent';
+  if(v.includes('แฟนและลูก') || (v.includes('partner') && v.includes('child'))) return 'partner-child';
+  if(v === 'มี' || v.includes('แฟน') || v.includes('partner') || v.includes('follower')) return 'partner';
+  return 'solo';
+}
+function buildTripPeople(rows, overrides){
+  const people = [];
+  rows.forEach(r=>{
+    const kind = followerKind(r.follower);
+    const friendId = 'row-' + r.row + '-friend';
+    people.push({id:friendId,row:r.row,name:r.name,nickname:r.nickname,zone:r.zone,role:'friend',pairId:'row-'+r.row,defaultAttend:kind!=='absent'});
+    if(kind === 'partner' || kind === 'partner-child'){
+      people.push({id:'row-'+r.row+'-follower',row:r.row,name:'Follower of ' + (r.nickname||r.name),nickname:'',zone:r.zone,role:'follower',pairId:'row-'+r.row,defaultAttend:true});
+    }
+    if(kind === 'partner-child'){
+      people.push({id:'row-'+r.row+'-child',row:r.row,name:'Child of ' + (r.nickname||r.name),nickname:'',zone:r.zone,role:'child',pairId:'row-'+r.row,defaultAttend:true});
+    }
+  });
+  people.forEach(p=>{ p.attend = Object.prototype.hasOwnProperty.call(overrides,p.id) ? !!overrides[p.id] : p.defaultAttend; });
+  return people;
+}
+function allocateSharedRooms(people, settings){
+  const queue = people.slice();
+  const rooms = [];
+  function add(type, capacity, rate){
+    if(!queue.length) return;
+    capacity = Math.max(1, Math.floor(Number(capacity)||1));
+    rooms.push({type,capacity,rate,occupants:queue.splice(0,Math.min(capacity,queue.length))});
+  }
+  let six = 0, quad = 0;
+  const sixCapacity=Math.max(1,Math.floor(Number(settings.sixCapacity)||1));
+  const quadCapacity=Math.max(1,Math.floor(Number(settings.quadCapacity)||1));
+  const maxSix=Math.max(0,Math.floor(Number(settings.maxSixRooms)||0));
+  const maxQuad=Math.max(0,Math.floor(Number(settings.maxQuadRooms)||0));
+  while(queue.length >= Math.max(2,sixCapacity-1) && six < maxSix){ add('Six-person',sixCapacity,settings.sixRate); six++; }
+  while(queue.length >= Math.max(2,quadCapacity-1) && quad < maxQuad){ add('Quad',quadCapacity,settings.quadRate); quad++; }
+  while(queue.length){ add('Twin',settings.twinCapacity,settings.twinRate); }
+  return rooms;
+}
+function computeTripResult(rows, overrides, settings){
+  const people = buildTripPeople(rows, overrides);
+  const active = people.filter(p=>p.attend);
+  const adult = p=>p.role !== 'child';
+  const activeAdults = active.filter(adult);
+  const children = active.filter(p=>p.role === 'child');
+  const pairs = new Map();
+  activeAdults.forEach(p=>{ if(!pairs.has(p.pairId)) pairs.set(p.pairId,[]); pairs.get(p.pairId).push(p); });
+  const couples = [], soloAdults = [];
+  pairs.forEach(group=>{
+    const friend = group.find(p=>p.role==='friend');
+    const follower = group.find(p=>p.role==='follower');
+    if(friend && follower) couples.push({friend,follower}); else group.forEach(p=>soloAdults.push(p));
+  });
+  const sharedRooms = allocateSharedRooms(soloAdults, settings);
+  const night1Capacity=Math.max(1,Math.floor(Number(settings.night1Capacity)||1));
+  const driverRoomCapacity=Math.max(1,Math.floor(Number(settings.driverRoomCapacity)||1));
+  const night1Rooms = Math.ceil(activeAdults.length / night1Capacity);
+  const driverRooms = settings.driverCount ? Math.ceil(settings.driverCount/driverRoomCapacity) : 0;
+  const night1Cost = night1Rooms * settings.night1Rate;
+  const coupleCost = couples.length * settings.twinRate;
+  const sharedCost = sharedRooms.reduce((s,r)=>s+r.rate,0);
+  const driverCost = driverRooms * settings.driverRoomRate;
+  const mealRates = [settings.mealLunch1,settings.mealDinner1,settings.mealLunch2,settings.mealDinner2,settings.mealLunch3];
+  const mealNames = ['Day 1 lunch','Day 1 dinner','Day 2 lunch','Day 2 dinner','Day 3 lunch'];
+  const costs = [
+    ['Hotel','Night 1',night1Rooms+' rooms x '+tripMoney(settings.night1Rate),night1Cost],
+    ['Hotel','Night 2 couple rooms',couples.length+' rooms x '+tripMoney(settings.twinRate),coupleCost],
+    ['Hotel','Night 2 shared rooms',sharedRooms.length+' rooms',sharedCost],
+    ['Hotel','Driver rooms',driverRooms+' rooms x '+tripMoney(settings.driverRoomRate),driverCost]
+  ];
+  mealRates.forEach((rate,i)=>costs.push(['Meals',mealNames[i],activeAdults.length+' adults x '+tripMoney(rate),activeAdults.length*rate]));
+  [['Other','Drinks','Fixed',settings.drinks],['Other','Karaoke','Fixed',settings.karaoke],['Other','Ice','Fixed',settings.ice],['Transport','Vans','Fixed',settings.vans],['Transport','Fuel','Fixed',settings.fuel]].forEach(x=>costs.push(x));
+  if(settings.includeMixer) costs.push(['Other','Late mixer','Fixed',settings.mixer]);
+  const total = costs.reduce((s,c)=>s+(Number(c[3])||0),0);
+  return {people,active,activeAdults,children,couples,soloAdults,sharedRooms,night1Rooms,driverRooms,costs,total,
+    hotelTotal:night1Cost+coupleCost+sharedCost+driverCost,
+    mealTotal:activeAdults.length*mealRates.reduce((a,b)=>a+(Number(b)||0),0),
+    fixedTotal:total-(night1Cost+coupleCost+sharedCost+driverCost)-activeAdults.length*mealRates.reduce((a,b)=>a+(Number(b)||0),0)};
+}
+function calcMetric(label, value, sub){
+  const el=document.createElement('div'); el.className='calc-metric';
+  const l=document.createElement('span'); l.className='k'; l.textContent=label;
+  const v=document.createElement('strong'); v.className='v'; v.textContent=value;
+  const s=document.createElement('small'); s.className='calc-muted'; s.textContent=sub||'';
+  el.append(l,v,s); return el;
+}
+function renderTripCalculator(){
+  const cfg=tripConfig();
+  document.getElementById('calcSheetUrl').value=cfg.sheetUrl;
+  renderCalcSettings(cfg.settings);
+  if(!cfg.rows.length){
+    tripCalcResult=null;
+    ['calcMetrics','calcOverviewCosts','calcAlerts','calcPeopleBody','calcRoomMetrics','calcRoomBody','calcCoupleList','calcCostBody','calcCostFoot'].forEach(id=>document.getElementById(id).innerHTML='');
+    document.getElementById('calcPerPerson').textContent=''; document.getElementById('calcCoupleCount').textContent='';
+    tripStatus('No data loaded'); return;
+  }
+  tripCalcResult=computeTripResult(cfg.rows,cfg.overrides,cfg.settings);
+  renderCalcOverview(tripCalcResult,cfg); renderCalcPeople(tripCalcResult,cfg); renderCalcRooms(tripCalcResult,cfg); renderCalcCosts(tripCalcResult,cfg);
+  tripStatus(cfg.rows.length+' responses / synced '+(cfg.syncedAt ? new Date(cfg.syncedAt).toLocaleString() : 'from CSV'),'ready');
+}
+function renderCalcOverview(r,cfg){
+  const metrics=document.getElementById('calcMetrics'); metrics.innerHTML='';
+  metrics.append(calcMetric('ADULTS',tripNumber(r.activeAdults.length),'Friends + followers'),calcMetric('CHILDREN',tripNumber(r.children.length),'Listed children'),calcMetric('TOTAL PEOPLE',tripNumber(r.active.length),'Currently attending'),calcMetric('GRAND TOTAL',tripMoney(r.total),'Current rules'));
+  document.getElementById('calcPerPerson').textContent=r.activeAdults.length ? tripMoney(r.total/r.activeAdults.length)+' / adult' : '';
+  const list=document.getElementById('calcOverviewCosts'); list.innerHTML='';
+  [['Hotel',r.hotelTotal],['Meals',r.mealTotal],['Other & transport',r.fixedTotal],['Grand total',r.total]].forEach(([name,value],i)=>{
+    const row=document.createElement('div'); row.className='calc-list-row'+(i===3?' total':'');
+    const a=document.createElement('span'); a.textContent=name; const b=document.createElement('strong'); b.textContent=tripMoney(value); row.append(a,b); list.appendChild(row);
+  });
+  const alerts=document.getElementById('calcAlerts'); alerts.innerHTML='';
+  const messages=[];
+  if(!cfg.settings.driverRoomRate) messages.push(['warn','Driver room rate is 0. Add the actual rate in Settings.']);
+  const emptyBeds=r.sharedRooms.reduce((n,room)=>n+room.capacity-room.occupants.length,0);
+  messages.push(['ok',r.couples.length+' couples kept together; '+r.soloAdults.length+' adults allocated to shared rooms.']);
+  messages.push([emptyBeds?'warn':'ok',emptyBeds+' empty shared-room bed'+(emptyBeds===1?'':'s')+'.']);
+  messages.forEach(([state,text])=>{ const el=document.createElement('div'); el.className='calc-alert '+state; el.textContent=text; alerts.appendChild(el); });
+}
+function roomStatusFor(person,r){
+  if(!person.attend) return 'Not attending';
+  if(person.role==='child') return 'Child / family';
+  const couple=r.couples.find(c=>c.friend.id===person.id||c.follower.id===person.id);
+  if(couple) return 'Couple room';
+  const index=r.sharedRooms.findIndex(room=>room.occupants.some(p=>p.id===person.id));
+  return index>=0 ? r.sharedRooms[index].type+' #'+(index+1) : 'Shared pool';
+}
+function renderCalcPeople(r,cfg){
+  const body=document.getElementById('calcPeopleBody'); body.innerHTML='';
+  const q=document.getElementById('calcPeopleSearch').value.trim().toLowerCase();
+  r.people.filter(p=>!q||[p.name,p.nickname,p.zone].join(' ').toLowerCase().includes(q)).forEach(p=>{
+    const tr=document.createElement('tr');
+    const tdCheck=document.createElement('td'); const check=document.createElement('input'); check.type='checkbox'; check.className='calc-attend calc-check'; check.checked=p.attend; check.dataset.personId=p.id; tdCheck.appendChild(check);
+    const tdName=document.createElement('td'); tdName.textContent=p.name+(p.nickname?' ('+p.nickname+')':'');
+    const tdRole=document.createElement('td'); const role=document.createElement('span'); role.className='calc-role '+p.role; role.textContent=p.role; tdRole.appendChild(role);
+    const tdZone=document.createElement('td'); tdZone.textContent=p.zone||'-'; const tdRoom=document.createElement('td'); tdRoom.textContent=roomStatusFor(p,r);
+    tr.append(tdCheck,tdName,tdRole,tdZone,tdRoom); body.appendChild(tr);
+  });
+}
+function renderCalcRooms(r,cfg){
+  const metrics=document.getElementById('calcRoomMetrics'); metrics.innerHTML='';
+  metrics.append(calcMetric('NIGHT 1',r.night1Rooms+' rooms',cfg.settings.night1Capacity+' adults / room'),calcMetric('COUPLE ROOMS',r.couples.length+' rooms','Night 2'),calcMetric('SHARED ROOMS',r.sharedRooms.length+' rooms',r.soloAdults.length+' adults'),calcMetric('DRIVER ROOMS',r.driverRooms+' rooms',cfg.settings.driverCount+' drivers'));
+  const body=document.getElementById('calcRoomBody'); body.innerHTML='';
+  r.sharedRooms.forEach((room,i)=>{ const tr=document.createElement('tr'); [room.type+' #'+(i+1),room.capacity,room.occupants.map(p=>p.nickname||p.name).join(', ')].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.appendChild(td);}); const cost=document.createElement('td');cost.className='calc-num';cost.textContent=tripMoney(room.rate);tr.appendChild(cost);body.appendChild(tr); });
+  document.getElementById('calcCoupleCount').textContent=r.couples.length+' rooms';
+  const list=document.getElementById('calcCoupleList'); list.innerHTML='';
+  r.couples.forEach(c=>{ const row=document.createElement('div');row.className='calc-list-row';const a=document.createElement('span');a.textContent=c.friend.nickname||c.friend.name;const b=document.createElement('span');b.textContent=c.follower.name;row.append(a,b);list.appendChild(row); });
+  if(!r.couples.length){ const empty=document.createElement('div');empty.className='calc-empty';empty.textContent='No active couples';list.appendChild(empty); }
+}
+function renderCalcCosts(r){
+  const body=document.getElementById('calcCostBody'); body.innerHTML='';
+  r.costs.forEach(c=>{ const tr=document.createElement('tr'); c.slice(0,3).forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.appendChild(td);});const td=document.createElement('td');td.className='calc-num';td.textContent=tripMoney(c[3]);tr.appendChild(td);body.appendChild(tr); });
+  const foot=document.getElementById('calcCostFoot'); foot.innerHTML=''; const tr=document.createElement('tr');
+  const label=document.createElement('td');label.colSpan=3;label.textContent='GRAND TOTAL';const total=document.createElement('td');total.className='calc-num';total.textContent=tripMoney(r.total);tr.append(label,total);foot.appendChild(tr);
+}
+function renderCalcSettings(settings){
+  const grid=document.getElementById('calcSettingsGrid'); grid.innerHTML='';
+  TRIP_SETTING_GROUPS.forEach(group=>{ const box=document.createElement('div');box.className='calc-setting-group';const h=document.createElement('h3');h.textContent=group.title;box.appendChild(h);group.fields.forEach(([key,label])=>{const row=document.createElement('label');row.className='calc-setting-row';const span=document.createElement('span');span.textContent=label;const input=document.createElement('input');input.type='number';input.min='0';input.step='1';input.value=settings[key];input.dataset.calcSetting=key;row.append(span,input);box.appendChild(row);});grid.appendChild(box); });
+  const box=document.createElement('div');box.className='calc-setting-group';const h=document.createElement('h3');h.textContent='Options';const row=document.createElement('label');row.className='calc-setting-check';const input=document.createElement('input');input.type='checkbox';input.checked=!!settings.includeMixer;input.dataset.calcSetting='includeMixer';const span=document.createElement('span');span.textContent='Include late mixer cost';row.append(input,span);box.append(h,row);grid.appendChild(box);
+}
+async function syncTripSheet(){
+  const cfg=tripConfig(); const url=document.getElementById('calcSheetUrl').value.trim();
+  if(!url){ tripStatus('Paste a Google Sheet URL first','error'); return; }
+  tripStatus('Reading Sheet...','busy'); document.getElementById('calcSyncBtn').disabled=true;
+  try{
+    const res=await fetch(sheetCsvUrl(url)+'&_t='+Date.now(),{cache:'no-store'});
+    if(!res.ok) throw new Error('Sheet returned HTTP '+res.status+'. Make sure link access is enabled.');
+    const rows=parseTripCsv(await res.text());
+    cfg.sheetUrl=url;cfg.rows=rows;cfg.syncedAt=new Date().toISOString();saveTripConfig(cfg);renderTripCalculator();
+  }catch(err){ tripStatus(err.message,'error'); }
+  finally{ document.getElementById('calcSyncBtn').disabled=false; }
+}
+function importTripCsv(file){
+  const reader=new FileReader(); tripStatus('Reading CSV...','busy');
+  reader.onload=()=>{ try{const cfg=tripConfig();cfg.rows=parseTripCsv(String(reader.result||''));cfg.syncedAt=new Date().toISOString();saveTripConfig(cfg);renderTripCalculator();}catch(err){tripStatus(err.message,'error');} };
+  reader.onerror=()=>tripStatus('Could not read the CSV file.','error'); reader.readAsText(file,'utf-8');
+}
+function openTripCalculator(){
+  const cfg=tripConfig(); if(!cfg.sheetUrl){ const found=findProjectSheetUrl(DATA); if(found){cfg.sheetUrl=found;saveTripConfig(cfg);} }
+  document.getElementById('calculatorOverlay').classList.add('open');renderTripCalculator();
+}
+document.getElementById('btnTripCalculator').addEventListener('click',openTripCalculator);
+document.getElementById('calcCloseBtn').addEventListener('click',()=>document.getElementById('calculatorOverlay').classList.remove('open'));
+document.getElementById('calcSyncBtn').addEventListener('click',syncTripSheet);
+document.getElementById('calcImportBtn').addEventListener('click',()=>document.getElementById('calcCsvFile').click());
+document.getElementById('calcCsvFile').addEventListener('change',e=>{const file=e.target.files&&e.target.files[0];if(file)importTripCsv(file);e.target.value='';});
+document.querySelectorAll('.calc-tab').forEach(tab=>tab.addEventListener('click',()=>{document.querySelectorAll('.calc-tab').forEach(x=>x.classList.toggle('active',x===tab));document.querySelectorAll('.calc-view').forEach(x=>x.classList.toggle('active',x.dataset.calcPanel===tab.dataset.calcView));}));
+document.getElementById('calcPeopleSearch').addEventListener('input',()=>{const cfg=tripConfig();if(tripCalcResult)renderCalcPeople(tripCalcResult,cfg);});
+document.getElementById('calcPeopleBody').addEventListener('change',e=>{if(!e.target.matches('.calc-attend'))return;const cfg=tripConfig();cfg.overrides[e.target.dataset.personId]=e.target.checked;if(!e.target.checked&&e.target.dataset.personId.endsWith('-follower'))cfg.overrides[e.target.dataset.personId.replace('-follower','-child')]=false;saveTripConfig(cfg);renderTripCalculator();});
+document.getElementById('calcResetOverrides').addEventListener('click',()=>{const cfg=tripConfig();cfg.overrides={};saveTripConfig(cfg);renderTripCalculator();});
+document.getElementById('calcSettingsGrid').addEventListener('change',e=>{const key=e.target.dataset.calcSetting;if(!key)return;const cfg=tripConfig();cfg.settings[key]=e.target.type==='checkbox'?e.target.checked:Math.max(0,Number(e.target.value)||0);saveTripConfig(cfg);renderTripCalculator();});
+document.getElementById('calcResetSettings').addEventListener('click',()=>{const cfg=tripConfig();cfg.settings=Object.assign({},TRIP_CALC_DEFAULTS);saveTripConfig(cfg);renderTripCalculator();});
+
 const RADIUS_STEP = 190;
 let positions = new Map();
 let prevPositions = new Map();
